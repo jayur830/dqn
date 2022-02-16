@@ -54,6 +54,37 @@ def mask(state: np.ndarray, agent_output: np.ndarray):
     return q
 
 
+"""sudo code
+
+<pre>
+    replay_buffer = deque(len=1000)
+    n = 50
+    
+    env = Environment()
+    agent = Agent()
+    
+    for episode in episodes:
+        env.reset()
+        while not env.done():
+            state = env.state
+            _, action = agent.predict(state)
+            next_state, reward = env.step(action)
+            replay_buffer.append((state, action, reward, next_state))
+        if episode > n:
+            experiences = np.transpose(np.asarray(replay_buffer))
+            states, actions, rewards, next_states = experiences[0], experiences[1], experiences[2], experiences[3]
+            next_q_value, _ = agent.predict(next_states)
+            target_q_values = rewards + discount * max(next_q_values)
+            all_q_values, _ = agent.predict(states)
+            q_values = sum(all_q_values * mask(actions))
+            agent.train(
+                x=target_q_values,
+                y=q_values,
+                loss=mean_squared_error)
+</pre>
+"""
+
+
 if __name__ == "__main__":
     env = Environment(init_state=np.asarray([
         [0, 0, 0],
