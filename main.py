@@ -3,50 +3,9 @@ import numpy as np
 
 from typing import Callable
 from collections import deque
-from agent import agent_model
-
-
-class Environment:
-    def __init__(self, init_state: np.ndarray):
-        self.__init_state = init_state
-        self.__state = self.__init_state.copy()
-        self.__done = True
-
-    def state(self):
-        return self.__state.copy()
-
-    def step(self, action):
-        reward = 0
-        next_state = 0
-        return reward, next_state
-
-    def done(self):
-        return self.__done
-
-    def reset(self):
-        self.__state = self.__init_state.copy()
-        self.__done = False
-
-
-class Agent:
-    def __init__(self, model: tf.keras.models.Model):
-        self.__model = model
-
-    def predict(self, state):
-        q_value = 0
-        action = 0
-        return q_value, action
-
-    def action(self, state: np.ndarray, mask: Callable[[np.ndarray, np.ndarray], np.ndarray] = None):
-        output = np.asarray(self.__model(state))
-        if mask is not None:
-            output = mask(state, output)
-        print(output)
-        # np.asarray(self.call(state, training))
-        return output, 0
-
-    def train(self, x, y):
-        self.__model.train_on_batch(x, y)
+from rl.env import Environment
+from rl.agent import Agent
+from model import agent_model
 
 
 class Action:
@@ -117,6 +76,8 @@ if __name__ == "__main__":
             reward, next_state = env.step(action)
             replay_buffer.append((state, action, reward, next_state))
             step += 1
+            print(replay_buffer[-1])
+            input()
         if step >= replay_buffer_size:
             states, actions, rewards, next_states = np.transpose(np.asarray(replay_buffer))
             next_q_value, _ = agent.predict(next_states)

@@ -2,35 +2,22 @@ import os
 import tensorflow as tf
 import numpy as np
 
-from main import Agent
-
 
 def agent_model(
         kernel_initializer="he_normal",
         learning_rate=1e-3):
     input_layer = tf.keras.layers.Input(shape=(3, 3, 1))
-    x = tf.keras.layers.Conv2D(
-        filters=3,
-        kernel_size=3,
-        padding="same",
-        kernel_initializer=kernel_initializer,
-        use_bias=False)(input_layer)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation(tf.keras.activations.swish)(x)
-    x = tf.keras.layers.Conv2D(
-        filters=3,
-        kernel_size=3,
-        padding="same",
+    x = tf.keras.layers.Flatten()(input_layer)
+    x = tf.keras.layers.Dropout(rate=.3)(x)
+    x = tf.keras.layers.Dense(
+        units=32,
         kernel_initializer=kernel_initializer,
         use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation(tf.keras.activations.swish)(x)
-    x = tf.keras.layers.Conv2D(
-        filters=1,
-        kernel_size=3,
-        padding="same",
-        kernel_initializer=kernel_initializer,
-        activation="softmax")(x)
+    x = tf.keras.layers.Dense(
+        units=3 * 3,
+        activation="softmax",
+        kernel_initializer=kernel_initializer)(x)
 
     model = tf.keras.models.Model(input_layer, x)
     model.compile(
