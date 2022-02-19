@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+import time
+
 
 class Agent:
     def __init__(self, model: tf.keras.models.Model):
@@ -13,16 +15,22 @@ class Agent:
         self.__q_model.set_weights(model.get_weights())
 
     def predict(self, state, training=True):
-        q_value = self.__target_model.predict(state)
+        q_value = np.asarray(self.__target_model(state)).copy()
         # if not training:
-        indexes = np.transpose(np.where(state.reshape((state.shape[0], state.shape[1] * state.shape[2], state.shape[3])) != 0))
-        for i in range(indexes.shape[0]):
-            q_value[indexes[i][0], indexes[i][1]] = -999
-        action = q_value.reshape(-1).argmax()
-        return q_value, action
+        actions = self.__mask(state, q_value)
+        return q_value, actions if len(actions) > 1 else actions[0]
 
     def train(self, x, y):
         self.__q_model.train_on_batch(x, y)
 
     def update_target_model(self):
         self.__target_model.set_weights(self.__q_model.get_weights())
+
+    def __mask(self, states, q_values):
+        actions = np.asarray([0])
+        indexes = None
+        for i in range(states.shape[0]):
+            state, q_value = states[i], q_values[i]
+            indexes = np.where(state.reshape((state.shape[0] * state.shape[1],)) == 0)[0].reshape(-1)
+            actions = np.append(actions, np.where(q_value == np.max(q_value.reshape(-1)[indexes]))[0][0])
+        return actions[1:]

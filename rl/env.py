@@ -25,24 +25,30 @@ class Environment:
         return self.__state.copy()
 
     def step(self, action):
+        action = int(action)
         next_state = self.__state.copy()
-        random_indexes = np.where(self.__state.flatten() == 0)[0]
+        random_indexes = np.where(self.__state.reshape(-1) == 0)[0]
+        random_indexes = random_indexes[np.where(random_indexes != action)[0]]
         if len(random_indexes) == 0:
             self.__done = True
-            return 0, next_state
+            self.__reward = 0
+            return self.__reward, next_state
         random_index = random_indexes[random.randint(0, len(random_indexes) - 1)]
         if self.__exist(action):
             self.__reward = -100
             self.__done = True
         else:
             next_state[indices[action][0], indices[action][1]] = 1.
-            next_state[indices[random_index][0], indices[random_index][1]] = -1.
+            if action != random_index:
+                next_state[indices[random_index][0], indices[random_index][1]] = -1.
             self.__state = next_state
             self.__done, winner = self.__result(next_state)
             if winner == -1:
                 self.__reward = -10
-            else:
+            elif winner == 1:
                 self.__reward = max(self.__reward, 0) + 1
+            else:
+                self.__reward = 0 if self.__done else max(self.__reward, 0) + 1
         return self.__reward, next_state
 
     def done(self):
@@ -65,5 +71,7 @@ class Environment:
                 or next_state[0, 0] + next_state[1, 1] + next_state[2, 2] == 3 \
                 or next_state[0, 2] + next_state[1, 1] + next_state[2, 0] == 3:
             return True, 1
+        elif len(np.where(next_state == 0)[0]) == 0:
+            return True, 0
         else:
             return False, 0

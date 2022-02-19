@@ -87,8 +87,10 @@ if __name__ == "__main__":
         while not env.done():
             step += 1
             state = env.state()
-            _, action = agent.predict(state.reshape((1,) + state.shape + (1,)))
+            q, action = agent.predict(state.reshape((1,) + state.shape + (1,)))
             reward, next_state = env.step(action)
+            # print(f"state:\n{state.reshape((3, 3))}")
+            # print(f"reward: {reward}")
             replay_buffer.append((state, action, reward, next_state))
             if step >= replay_buffer_size:
                 states, _, _, next_states = experiences(replay_buffer)
@@ -99,13 +101,13 @@ if __name__ == "__main__":
                 agent.train(
                     x=states,
                     y=q_values)
-                if step % 100 == 0:
+                if step % 50 == 0:
                     agent.update_target_model()
         if reward == -100:
-            print(f"episode {episode + 1}: RESET")
+            print(f"episode {episode + 1}: RESET, reward: -100")
         elif reward == 0:
-            print(f"episode {episode + 1}: DRAW")
+            print(f"episode {episode + 1}: DRAW, reward: 0")
         elif reward == -10:
-            print(f"episode {episode + 1}: LOSE")
+            print(f"episode {episode + 1}: LOSE, reward: -10")
         elif reward > 0:
-            print(f"episode {episode + 1}: WIN")
+            print(f"episode {episode + 1}: WIN, reward: {reward}")
