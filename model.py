@@ -8,7 +8,7 @@ def agent_model(
         learning_rate=1e-3):
     input_layer = tf.keras.layers.Input(shape=(3, 3, 1))
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=8,
         kernel_size=3,
         padding="same",
         kernel_initializer=kernel_initializer,
@@ -16,7 +16,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=8,
         kernel_size=3,
         padding="same",
         kernel_initializer=kernel_initializer,

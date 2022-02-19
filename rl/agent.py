@@ -1,7 +1,5 @@
-import tensorflow as tf
 import numpy as np
-
-from typing import Callable
+import tensorflow as tf
 
 
 class Agent:
@@ -14,10 +12,12 @@ class Agent:
             metrics=model.metrics)
         self.__q_model.set_weights(model.get_weights())
 
-    def predict(self, state):
-        if len(state.shape) < 3:
-            state = state.reshape((1,) + state.shape)
+    def predict(self, state, training=True):
         q_value = self.__target_model.predict(state)
+        # if not training:
+        indexes = np.transpose(np.where(state.reshape((state.shape[0], state.shape[1] * state.shape[2], state.shape[3])) != 0))
+        for i in range(indexes.shape[0]):
+            q_value[indexes[i][0], indexes[i][1]] = -999
         action = q_value.reshape(-1).argmax()
         return q_value, action
 
