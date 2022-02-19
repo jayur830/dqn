@@ -26,12 +26,14 @@ class Environment:
 
     def step(self, action):
         next_state = self.__state.copy()
-        while True:
-            random_index = random.randint(0, 9)
-            if not self.__exist(random_index):
-                break
+        random_indexes = np.where(self.__state.flatten() == 0)[0]
+        if len(random_indexes) == 0:
+            self.__done = True
+            return 0, next_state
+        random_index = random_indexes[random.randint(0, len(random_indexes) - 1)]
         if self.__exist(action):
             self.__reward = -100
+            self.__done = True
         else:
             next_state[indices[action][0], indices[action][1]] = 1.
             next_state[indices[random_index][0], indices[random_index][1]] = -1.

@@ -6,20 +6,23 @@ from typing import Callable
 
 class Agent:
     def __init__(self, model: tf.keras.models.Model):
-        self.__model = model
+        self.__target_model = model
+        self.__q_model = tf.keras.models.clone_model(model)
+        self.__q_model.compile(
+            optimizer=model.optimizer,
+            loss=model.loss,
+            metrics=model.metrics)
+        self.__q_model.set_weights(model.get_weights())
 
     def predict(self, state):
-        q_value = np.asarray(self.__model(state))
-        action = q_value.argmax()
+        if len(state.shape) < 3:
+            state = state.reshape((1,) + state.shape)
+        q_value = self.__target_model.predict(state)
+        action = q_value.reshape(-1).argmax()
         return q_value, action
 
-    def action(self, state: np.ndarray, mask: Callable[[np.ndarray, np.ndarray], np.ndarray] = None):
-        output = np.asarray(self.__model(state))
-        if mask is not None:
-            output = mask(state, output)
-        print(output)
-        # np.asarray(self.call(state, training))
-        return output, 0
-
     def train(self, x, y):
-        self.__model.train_on_batch(x, y)
+        self.__q_model.train_on_batch(x, y)
+
+    def update_target_model(self):
+        self.__target_model.set_weights(self.__q_model.get_weights())
