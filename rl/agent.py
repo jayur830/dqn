@@ -1,8 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-import time
-
 
 class Agent:
     def __init__(self, model: tf.keras.models.Model):
@@ -16,7 +14,8 @@ class Agent:
 
     def predict(self, state):
         q_value = np.asarray(self.__target_model(state)).copy()
-        actions = self.__mask(state, q_value)
+        masked_result = self._mask(state, q_value)
+        actions = q_value.argmax(axis=1) if masked_result is None else masked_result
         return q_value, actions if len(actions) > 1 else actions[0]
 
     def train(self, x, y):
@@ -25,8 +24,5 @@ class Agent:
     def update_target_model(self):
         self.__target_model.set_weights(self.__q_model.get_weights())
 
-    def __mask(self, states, q_values):
-        flatten_states = states.reshape((states.shape[0], states.shape[1] * states.shape[2]))
-        i, j = np.where(flatten_states != 0)
-        q_values[i, j] = np.min(q_values) - 1
-        return q_values.argmax(axis=1)
+    def _mask(self, states, q_values):
+        return None
