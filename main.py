@@ -5,6 +5,7 @@ from typing import Callable
 from collections import deque
 from rl.env import Environment
 from rl.agent import Agent
+from rl.replay_buffer import ReplayBuffer
 from model import agent_model
 
 import time
@@ -84,7 +85,7 @@ def on_episode_end(episode, reward):
 if __name__ == "__main__":
     episodes = 1000000
     replay_buffer_size = 2000
-    replay_buffer = deque(maxlen=replay_buffer_size)
+    replay_buffer = ReplayBuffer(maxlen=replay_buffer_size)
     update_freq = 100
 
     env = Environment(init_state=np.asarray([
@@ -103,13 +104,13 @@ if __name__ == "__main__":
             state = env.state()
             q, action = agent.predict(state.reshape((1,) + state.shape + (1,)))
             reward, next_state = env.step(action)
-            replay_buffer.append((state, action, reward, next_state))
+            replay_buffer.put(state, action, reward, next_state)
             if step >= replay_buffer_size:
-                states, _, _, next_states = experiences(replay_buffer)
+                states, _, _, next_states = replay_buffer.sample()
                 q_values, _ = agent.predict(states.reshape(states.shape + (1,)))
                 next_q_values, _ = agent.predict(next_states.reshape(next_states.shape + (1,)))
-                for i, (s, a, r, ns) in enumerate(replay_buffer):
-                    q_values[i][a] = r + (1 - env.done()) * discount_factor * np.max(next_q_values[i])
+                for i in range(len(replay_buffer)):
+                    q_values[i][replay_buffer[i][1]] = replay_buffer[i][2] + (1 - env.done()) * discount_factor * np.max(next_q_values[i])
                 agent.train(
                     x=states,
                     y=q_values)
