@@ -1,8 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-import time
-
 
 class Agent:
     def __init__(self, model: tf.keras.models.Model):
@@ -14,9 +12,8 @@ class Agent:
             metrics=model.metrics)
         self.__q_model.set_weights(model.get_weights())
 
-    def predict(self, state, training=True):
+    def predict(self, state):
         q_value = np.asarray(self.__target_model(state)).copy()
-        # if not training:
         actions = self.__mask(state, q_value)
         return q_value, actions if len(actions) > 1 else actions[0]
 
