@@ -7,6 +7,8 @@ from rl.env import Environment
 from rl.agent import Agent
 from model import agent_model
 
+import time
+
 
 class Action:
     pass
@@ -60,18 +62,30 @@ def experiences(replay_buffer: deque):
         np.asarray([]), \
         np.asarray([]), \
         np.zeros(shape=(0, 3, 3))
-    for experience in replay_buffer:
-        states = np.concatenate([states, experience[0].reshape((1,) + experience[0].shape)])
-        actions = np.append(actions, experience[1])
-        rewards = np.append(rewards, experience[2])
-        next_states = np.concatenate([next_states, experience[3].reshape((1,) + experience[3].shape)])
+    for (s, a, r, ns) in replay_buffer:
+        states = np.concatenate([states, s.reshape((1,) + s.shape)])
+        actions = np.append(actions, a)
+        rewards = np.append(rewards, r)
+        next_states = np.concatenate([next_states, ns.reshape((1,) + ns.shape)])
     return states, actions, rewards, next_states
 
 
+def on_episode_end(episode, reward):
+    if reward == -100:
+        print(f"episode {episode + 1}: RESET, reward: {reward}")
+    elif reward == 2:
+        print(f"episode {episode + 1}: DRAW, reward: {reward}")
+    elif reward == -50:
+        print(f"episode {episode + 1}: LOSE, reward: {reward}")
+    elif reward > 0:
+        print(f"episode {episode + 1}: WIN, reward: {reward}")
+
+
 if __name__ == "__main__":
-    episodes = 10000
-    replay_buffer_size = 200
+    episodes = 1000000
+    replay_buffer_size = 2000
     replay_buffer = deque(maxlen=replay_buffer_size)
+    update_freq = 100
 
     env = Environment(init_state=np.asarray([
         [0, 0, 0],
@@ -89,25 +103,16 @@ if __name__ == "__main__":
             state = env.state()
             q, action = agent.predict(state.reshape((1,) + state.shape + (1,)))
             reward, next_state = env.step(action)
-            # print(f"state:\n{state.reshape((3, 3))}")
-            # print(f"reward: {reward}")
             replay_buffer.append((state, action, reward, next_state))
             if step >= replay_buffer_size:
                 states, _, _, next_states = experiences(replay_buffer)
                 q_values, _ = agent.predict(states.reshape(states.shape + (1,)))
                 next_q_values, _ = agent.predict(next_states.reshape(next_states.shape + (1,)))
                 for i, (s, a, r, ns) in enumerate(replay_buffer):
-                    q_values[i][a] = r + (0 if env.done() else discount_factor * np.max(next_q_values[i]))
+                    q_values[i][a] = r + (1 - env.done()) * discount_factor * np.max(next_q_values[i])
                 agent.train(
                     x=states,
                     y=q_values)
-                if step % 50 == 0:
+                if step % update_freq == 0:
                     agent.update_target_model()
-        if reward == -100:
-            print(f"episode {episode + 1}: RESET, reward: -100")
-        elif reward == 0:
-            print(f"episode {episode + 1}: DRAW, reward: 0")
-        elif reward == -10:
-            print(f"episode {episode + 1}: LOSE, reward: -10")
-        elif reward > 0:
-            print(f"episode {episode + 1}: WIN, reward: {reward}")
+        on_episode_end(episode, reward)

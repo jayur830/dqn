@@ -31,7 +31,7 @@ class Environment:
         random_indexes = random_indexes[np.where(random_indexes != action)[0]]
         if len(random_indexes) == 0:
             self.__done = True
-            self.__reward = 0
+            self.__reward = 2
             return self.__reward, next_state
         random_index = random_indexes[random.randint(0, len(random_indexes) - 1)]
         if self.__exist(action):
@@ -44,11 +44,14 @@ class Environment:
             self.__state = next_state
             self.__done, winner = self.__result(next_state)
             if winner == -1:
-                self.__reward = -10
+                self.__reward = -50
             elif winner == 1:
-                self.__reward = max(self.__reward, 0) + 1
+                self.__reward = 100
+                # self.__reward = max(self.__reward, 0) + 1
             else:
-                self.__reward = 0 if self.__done else max(self.__reward, 0) + 1
+                # 여기서 done 하면 무승부다
+                # self.__reward = 5
+                self.__reward = 2 if self.__done else max(self.__reward, 0) + 1
         return self.__reward, next_state
 
     def done(self):

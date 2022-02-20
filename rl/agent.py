@@ -28,7 +28,6 @@ class Agent:
 
     def __mask(self, states, q_values):
         actions = np.asarray([0])
-        indexes = None
         for i in range(states.shape[0]):
             state, q_value = states[i], q_values[i]
             indexes = np.where(state.reshape((state.shape[0] * state.shape[1],)) == 0)[0].reshape(-1)
