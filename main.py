@@ -1,17 +1,18 @@
 import numpy as np
 
+from rl.dqn import DQN
 from tictactoe.env import TicTacToeEnvironment
 from tictactoe.agent import TicTacToeAgent
 from tictactoe.model import agent_model
-from rl.dqn import DQN
+from tictactoe.commons import reward_reset, reward_draw, reward_lose
 
 
 def on_episode_end(episode, reward):
-    if reward == -100:
+    if reward == reward_reset:
         print(f"episode {episode + 1}: \033[93mRESET, reward: {reward}\033[0m")
-    elif reward == -1:
+    elif reward == reward_draw:
         print(f"episode {episode + 1}: \033[92mDRAW, reward: {reward}\033[0m")
-    elif reward == -10:
+    elif reward == reward_lose:
         print(f"episode {episode + 1}: \033[91mLOSE, reward: {reward}\033[0m")
     elif reward > 0:
         print(f"episode {episode + 1}: \033[94mWIN, reward: {reward}\033[0m")
