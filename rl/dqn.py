@@ -19,6 +19,7 @@ class DQN:
               discount_factor: float = .9,
               on_episode_end: Callable[[Any, Any], Any] = None):
         step, reward = 0, 0
+        indexes = None
         for episode in range(episodes):
             self.__env.reset()
             while not self.__env.done():
@@ -29,10 +30,10 @@ class DQN:
                 self.__replay_buffer.put(state, action, reward, next_state)
                 if step >= self.__replay_buffer_size:
                     states, actions, rewards, next_states = self.__replay_buffer.sample()
-                    q, _ = self.__agent.predict(
-                        np.vstack([states.reshape(states.shape + (1,)), next_states.reshape(next_states.shape + (1,))]))
+                    q, _ = self.__agent.predict(np.vstack([states.reshape(states.shape + (1,)), next_states.reshape(next_states.shape + (1,))]))
                     q_values, next_q_values = q[:states.shape[0]], q[states.shape[0]:]
-                    indexes = np.arange(len(self.__replay_buffer))
+                    if indexes is None:
+                        indexes = np.arange(len(self.__replay_buffer))
                     q_values[indexes, actions] = rewards + (1 - self.__env.done()) * discount_factor * np.max(next_q_values, axis=1)
                     self.__agent.train(
                         x=states,
