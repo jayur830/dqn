@@ -1,4 +1,6 @@
 __all__ = [
+    "dqn",
     "env",
-    "agent"
+    "agent",
+    "replay_buffer"
 ]
