@@ -73,13 +73,13 @@ def experiences(replay_buffer: deque):
 
 def on_episode_end(episode, reward):
     if reward == -100:
-        print(f"episode {episode + 1}: RESET, reward: {reward}")
+        print(f"episode {episode + 1}: \033[93mRESET, reward: {reward}\033[0m")
     elif reward == 2:
-        print(f"episode {episode + 1}: DRAW, reward: {reward}")
+        print(f"episode {episode + 1}: \033[92mDRAW, reward: {reward}\033[0m")
     elif reward == -50:
-        print(f"episode {episode + 1}: LOSE, reward: {reward}")
+        print(f"episode {episode + 1}: \033[91mLOSE, reward: {reward}\033[0m")
     elif reward > 0:
-        print(f"episode {episode + 1}: WIN, reward: {reward}")
+        print(f"episode {episode + 1}: \033[94mWIN, reward: {reward}\033[0m")
 
 
 if __name__ == "__main__":
@@ -106,11 +106,11 @@ if __name__ == "__main__":
             reward, next_state = env.step(action)
             replay_buffer.put(state, action, reward, next_state)
             if step >= replay_buffer_size:
-                states, _, _, next_states = replay_buffer.sample()
+                states, actions, rewards, next_states = replay_buffer.sample()
                 q_values, _ = agent.predict(states.reshape(states.shape + (1,)))
                 next_q_values, _ = agent.predict(next_states.reshape(next_states.shape + (1,)))
-                for i in range(len(replay_buffer)):
-                    q_values[i][replay_buffer[i][1]] = replay_buffer[i][2] + (1 - env.done()) * discount_factor * np.max(next_q_values[i])
+                indexes = np.arange(len(replay_buffer))
+                q_values[indexes, actions] = rewards + (1 - env.done()) * discount_factor * np.max(next_q_values, axis=1)
                 agent.train(
                     x=states,
                     y=q_values)
