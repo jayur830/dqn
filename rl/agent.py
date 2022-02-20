@@ -22,10 +22,10 @@ class Agent:
         masked_result = self._mask(state, q_value)
         argmax_values = q_value if masked_result is None else masked_result
         self.__epsilon = self.__e_greedy_fn(self.__epsilon)
-        if random.random() < self.__epsilon:
-            actions = np.random.randint(q_value.shape[-1], size=q_value.shape[0])
-        else:
-            actions = argmax_values.argmax(axis=1)
+        # if random.random() < self.__epsilon:
+        #     actions = np.random.randint(q_value.shape[-1], size=q_value.shape[0])
+        # else:
+        actions = argmax_values.argmax(axis=1)
         return q_value, actions if len(actions) > 1 else actions[0]
 
     def train(self, x, y):

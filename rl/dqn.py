@@ -22,12 +22,16 @@ class DQN:
         indexes = None
         for episode in range(episodes):
             self.__env.reset()
-            while not self.__env.done():
+            while True:
                 step += 1
+                print(f"step: {step} <<<<<<<<<<<<<<<<")
                 state = self.__env.state()
                 q, action = self.__agent.predict(state.reshape((1,) + state.shape + (1,)))
                 reward, next_state = self.__env.step(action)
                 self.__replay_buffer.put(state, action, reward, next_state)
+                print("iteration end >>>>>>>>>>>>>>>>")
+                if self.__env.done():
+                    break
                 if step >= self.__replay_buffer_size:
                     states, actions, rewards, next_states = self.__replay_buffer.sample()
                     q, _ = self.__agent.predict(np.vstack([states.reshape(states.shape + (1,)), next_states.reshape(next_states.shape + (1,))]))
