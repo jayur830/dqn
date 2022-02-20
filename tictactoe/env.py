@@ -46,10 +46,11 @@ class TicTacToeEnvironment(Environment):
                     self._reward = reward_lose
                 # Winner is the agent
                 elif winner == 1:
-                    self._reward = max(self._reward, reward_win)
+                    self._reward = max(self._reward, reward_win) + 1
                 # Give the reward -1 if the game is over, otherwise increase reward
                 else:
-                    self._reward = reward_draw if self._done else max(self._reward, 0) + 1
+                    self._reward = reward_draw if self._done else max(self._reward, reward_win) + 1
+
         return self._reward, next_state
 
     # Result of the current state

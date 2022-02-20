@@ -1,10 +1,11 @@
 import numpy as np
+import random
 
 from rl.dqn import DQN
 from tictactoe.env import TicTacToeEnvironment
 from tictactoe.agent import TicTacToeAgent
 from tictactoe.model import agent_model
-from tictactoe.commons import reward_reset, reward_draw, reward_lose
+from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win
 
 
 def on_episode_end(episode, reward):
@@ -14,7 +15,7 @@ def on_episode_end(episode, reward):
         print(f"episode {episode + 1}: \033[92mDRAW, reward: {reward}\033[0m")
     elif reward == reward_lose:
         print(f"episode {episode + 1}: \033[91mLOSE, reward: {reward}\033[0m")
-    elif reward > 0:
+    elif reward == reward_win:
         print(f"episode {episode + 1}: \033[94mWIN, reward: {reward}\033[0m")
 
 
@@ -28,7 +29,9 @@ if __name__ == "__main__":
         [0, 0, 0],
         [0, 0, 0]
     ]))
-    agent = TicTacToeAgent(model=agent_model())
+    agent = TicTacToeAgent(
+        model=agent_model(),
+        e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 1), 0.1))
 
     dqn = DQN(
         env=env,

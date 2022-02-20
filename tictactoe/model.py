@@ -1,14 +1,13 @@
-import os
 import tensorflow as tf
 import numpy as np
 
 
 def agent_model(
         kernel_initializer="he_normal",
-        learning_rate=0.01):
+        learning_rate=0.001):
     input_layer = tf.keras.layers.Input(shape=(3, 3, 1))
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=16,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -16,7 +15,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=16,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -24,7 +23,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=16,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -47,24 +46,3 @@ def agent_model(
     model.summary()
 
     return model
-
-
-
-if __name__ == "__main__":
-    # os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-    #
-    # def mask(state: np.ndarray, agent_output: np.ndarray):
-    #     state = state.reshape(state.shape[:-1])
-    #     q = agent_output.reshape(agent_output.shape[1:-1])
-    #     indexes = np.transpose(np.where(state != 0))
-    #     for i in range(indexes.shape[0]):
-    #         q[indexes[i][0], indexes[i][1]] = 0
-    #     return q
-    #
-    # agent = Agent(model=agent_model())
-    # agent.action(state=np.asarray([[[0], [0.5], [0]], [[1], [1], [0]], [[0], [0], [1]]]), mask=mask)
-
-    a = np.asarray([1, 2, 3])
-    print(a)
-    b = a.copy()
-    print(b)

@@ -19,4 +19,5 @@ class Environment:
 
     def reset(self):
         self._state = self._init_state.copy()
+        self._reward = 0
         self._done = False
