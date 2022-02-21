@@ -13,7 +13,7 @@ class Environment:
     def state(self) -> Any:
         return self._state.copy()
 
-    def step(self, action) -> Tuple[float, Any, bool]:
+    def step(self, action):
         pass
 
     def done(self) -> bool:

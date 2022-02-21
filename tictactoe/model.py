@@ -4,10 +4,10 @@ import numpy as np
 
 def agent_model(
         kernel_initializer="he_normal",
-        learning_rate=0.001):
+        learning_rate=0.01):
     input_layer = tf.keras.layers.Input(shape=(3, 3, 1))
     x = tf.keras.layers.Conv2D(
-        filters=16,
+        filters=9,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -15,7 +15,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
     x = tf.keras.layers.Conv2D(
-        filters=16,
+        filters=9,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -23,7 +23,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
     x = tf.keras.layers.Conv2D(
-        filters=16,
+        filters=9,
         kernel_size=3,
         use_bias=False,
         padding="same",
