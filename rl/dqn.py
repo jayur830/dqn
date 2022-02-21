@@ -15,10 +15,11 @@ class DQN:
 
     def learn(self,
               episodes: int,
+              buffer_sample_size: int,
               gamma: float = .9,
               on_episode_end: Callable[[Any, Any, Any], Any] = None):
         step, reward, info = 0, 0, None
-        s = np.arange(self.__replay_buffer_size)
+        s = np.arange(buffer_sample_size)
         for episode in range(episodes):
             self.__env.reset()
             while not self.__env.done():
@@ -28,7 +29,7 @@ class DQN:
                 reward, next_state, info = self.__env.step(action)
                 self.__replay_buffer.put(state, action, reward, next_state)
                 if step >= self.__replay_buffer_size:
-                    states, a, r, next_states = self.__replay_buffer.sample()
+                    states, a, r, next_states = self.__replay_buffer.sample(buffer_sample_size)
                     q, _ = self.__agent.predict(np.vstack([states.reshape(states.shape + (1,)), next_states.reshape(next_states.shape + (1,))]))
                     q_values, next_q_values = q[:states.shape[0]], q[states.shape[0]:]
                     q_values[s, a] = r + (1 - self.__env.done()) * gamma * np.max(next_q_values, axis=1)

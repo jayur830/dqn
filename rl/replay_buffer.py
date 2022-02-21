@@ -1,3 +1,4 @@
+import random
 import numpy as np
 
 from collections import deque
@@ -5,6 +6,7 @@ from collections import deque
 
 class ReplayBuffer:
     def __init__(self, maxlen: int):
+        self.__buffer_size = maxlen
         self.__state_buffer = deque(maxlen=maxlen)
         self.__action_buffer = deque(maxlen=maxlen)
         self.__reward_buffer = deque(maxlen=maxlen)
@@ -16,11 +18,12 @@ class ReplayBuffer:
         self.__reward_buffer.append(reward)
         self.__next_state_buffer.append(next_state)
 
-    def sample(self):
-        return np.asarray(self.__state_buffer), \
-               np.asarray(self.__action_buffer), \
-               np.asarray(self.__reward_buffer), \
-               np.asarray(self.__next_state_buffer)
+    def sample(self, sample_size: int = 500):
+        indexes = np.asarray(random.sample(range(0, self.__buffer_size), sample_size))
+        return np.asarray(self.__state_buffer)[indexes], \
+               np.asarray(self.__action_buffer)[indexes], \
+               np.asarray(self.__reward_buffer)[indexes], \
+               np.asarray(self.__next_state_buffer)[indexes]
 
     def __getitem__(self, i):
         return self.__state_buffer[i], \
@@ -29,4 +32,4 @@ class ReplayBuffer:
                self.__next_state_buffer[i]
 
     def __len__(self):
-        return len(self.__state_buffer)
+        return self.__buffer_size
