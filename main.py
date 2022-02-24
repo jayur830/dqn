@@ -31,7 +31,7 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 1000
+    replay_buffer_size = 10000
 
     env = TicTacToeEnvironment(init_state=np.asarray([
         [0, 0, 0],

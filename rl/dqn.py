@@ -17,7 +17,9 @@ class DQN:
               episodes: int,
               buffer_sample_size: int,
               gamma: float = .9,
-              on_episode_end: Callable[[Any, Any, Any], Any] = None):
+              on_episode_end: Callable[[Any, Any, Any], Any] = None,
+              checkpoint_path: str = None,
+              checkpoint_freq: int = 100):
         step, reward, info = 0, 0, None
         s = np.arange(buffer_sample_size)
         for episode in range(episodes):
@@ -40,3 +42,5 @@ class DQN:
                 self.__agent.update_target_model()
             if on_episode_end is not None and callable(on_episode_end):
                 on_episode_end(episode, reward, info)
+            if checkpoint_path is not None and (episode + 1) % checkpoint_freq == 0:
+                self.__agent.save(checkpoint_path)

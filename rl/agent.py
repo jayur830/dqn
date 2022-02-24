@@ -34,5 +34,8 @@ class Agent:
     def update_target_model(self):
         self.__target_model.set_weights(self.__q_model.get_weights())
 
+    def save(self, save_path: str = "model.h5"):
+        self.__target_model.save(filepath=save_path)
+
     def _mask(self, states, q_values) -> Union[np.ndarray, None]:
         return None
