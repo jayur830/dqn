@@ -33,11 +33,7 @@ if __name__ == "__main__":
     episodes = 1000000
     replay_buffer_size = 2000
 
-    env = TicTacToeEnvironment(init_state=np.asarray([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]))
+    env = TicTacToeEnvironment(init_state=np.zeros(shape=(3, 3)))
     agent = TicTacToeAgent(
         model=agent_model(),
         e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 1), 0.1))
