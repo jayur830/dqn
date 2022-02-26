@@ -12,7 +12,7 @@ def agent_model(
         padding="same",
         kernel_initializer=kernel_initializer)(input_layer)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
+    x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
         filters=16,
         kernel_size=3,
@@ -20,15 +20,7 @@ def agent_model(
         padding="same",
         kernel_initializer=kernel_initializer)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
-    x = tf.keras.layers.Conv2D(
-        filters=16,
-        kernel_size=3,
-        use_bias=False,
-        padding="same",
-        kernel_initializer=kernel_initializer)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.LeakyReLU(alpha=0.01)(x)
+    x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
         filters=1,
         activation="sigmoid",
