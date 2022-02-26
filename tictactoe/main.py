@@ -31,7 +31,7 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 10000
+    replay_buffer_size = 2000
 
     env = TicTacToeEnvironment(init_state=np.asarray([
         [0, 0, 0],
@@ -48,5 +48,5 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.learn(
         episodes=episodes,
-        buffer_sample_size=500,
+        buffer_sample_size=1000,
         on_episode_end=on_episode_end)
