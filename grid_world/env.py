@@ -46,7 +46,7 @@ class GridWorldEnvironment(Environment):
             next_state[current_index[0], current_index[1]] = 1.
 
         self._state = next_state
-        return self._reward, next_state, info
+        return next_state, self._reward, self._done, info
 
     def _state_preprocess(self, state: np.ndarray):
         if np.sum(state) == 0:

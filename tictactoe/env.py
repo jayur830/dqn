@@ -29,7 +29,7 @@ class TicTacToeEnvironment(Environment):
             self._reward, next_state, info = self.__play(next_state, index)
 
         self._state = next_state
-        return self._reward, next_state, info
+        return next_state, self._reward, self._done, info
 
     def _state_preprocess(self, state: np.ndarray):
         indexes = np.transpose(np.where(state == 0))

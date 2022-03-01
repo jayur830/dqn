@@ -23,15 +23,13 @@ class DQN:
         step, reward, info = 0, 0, None
         s = np.arange(buffer_sample_size)
         for episode in range(episodes):
-            self.__env.reset()
-            while not self.__env.done():
+            state = self.__env.reset()
+            while True:
                 step += 1
-                state = self.__env.state()
                 q, action = self.__agent.predict(state.reshape((1,) + state.shape + (1,)))
-                reward, next_state, info = self.__env.step(action)
-                print(next_state)
-                input()
+                next_state, reward, done, info = self.__env.step(action)
                 self.__replay_buffer.put(state, action, reward, next_state)
+                state = next_state
                 if step >= self.__replay_buffer_size:
                     states, a, r, next_states = self.__replay_buffer.sample(buffer_sample_size)
                     q, _ = self.__agent.predict(np.vstack([states.reshape(states.shape + (1,)), next_states.reshape(next_states.shape + (1,))]))
@@ -40,6 +38,8 @@ class DQN:
                     self.__agent.train(
                         x=states,
                         y=q_values)
+                if done:
+                    break
             if step >= self.__replay_buffer_size:
                 self.__agent.update_target_model()
             if on_episode_end is not None and callable(on_episode_end):

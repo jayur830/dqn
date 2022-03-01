@@ -24,6 +24,7 @@ class Environment:
         self._state = self._init_state.copy()
         self._reward = 0
         self._done = False
+        return self._state
 
     def _state_preprocess(self, state: np.ndarray):
         return state
