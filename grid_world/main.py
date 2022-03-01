@@ -27,12 +27,12 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 1000
+    replay_buffer_size = 100
 
     env = GridWorldEnvironment(init_state=np.zeros(shape=(grid_world_width, grid_world_height)))
     agent = GridWorldAgent(
         model=agent_model(),
-        e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.2))
+        e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.5))
 
     dqn = DQN(
         env=env,
@@ -40,5 +40,5 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.learn(
         episodes=episodes,
-        buffer_sample_size=1000,
+        buffer_sample_size=100,
         on_episode_end=on_episode_end)

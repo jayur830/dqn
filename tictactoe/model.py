@@ -6,7 +6,7 @@ def agent_model(
         learning_rate=0.01):
     input_layer = tf.keras.layers.Input(shape=(3, 3, 1))
     x = tf.keras.layers.Conv2D(
-        filters=16,
+        filters=64,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -14,7 +14,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
-        filters=16,
+        filters=32,
         kernel_size=3,
         use_bias=False,
         padding="same",
@@ -22,11 +22,11 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
-        filters=1,
-        activation="sigmoid",
+        filters=9,
         kernel_size=1,
         kernel_initializer=kernel_initializer)(x)
-    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    x = tf.keras.layers.Activation(tf.keras.activations.tanh)(x)
 
     model = tf.keras.models.Model(input_layer, x)
     model.compile(

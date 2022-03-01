@@ -43,6 +43,8 @@ class TicTacToeEnvironment(Environment):
             "status": ""
         }
         if next_state[indices[index][0], indices[index][1]] != 0:
+            print(next_state)
+            input()
             self._reward = reward_reset
             self._done = True
             info["status"] = "RESET"
@@ -68,7 +70,7 @@ class TicTacToeEnvironment(Environment):
                 or next_state[0, 0] + next_state[1, 1] + next_state[2, 2] == 3 \
                 or next_state[0, 2] + next_state[1, 1] + next_state[2, 0] == 3:
             return True, 1, reward_win
-        elif len(np.where(next_state == 0)[0]) == 0:
+        elif np.where(next_state.reshape(-1) == 0)[0].shape[0] == 0:
             return True, 0, reward_draw
         else:
             return False, 0, reward_win

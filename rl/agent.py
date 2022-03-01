@@ -16,17 +16,22 @@ class Agent:
         self.__q_model.set_weights(model.get_weights())
         self.__e_greedy_fn = e_greedy_fn
         self.__epsilon = epsilon
+        self.learning_rate = model.optimizer.learning_rate
 
     def predict(self, state):
         q_value = np.asarray(self.__target_model(state)).copy()
-        masked_result = self._mask(state, q_value)
-        argmax_values = q_value if masked_result is None else masked_result
+        masked_q_value = self._mask(state, q_value)
         self.__epsilon = self.__e_greedy_fn(self.__epsilon)
         if random.random() < self.__epsilon:
-            actions = np.random.randint(q_value.shape[-1], size=q_value.shape[0])
+            indexes = np.where(masked_q_value.reshape(-1) != np.min(masked_q_value))[0]
+            actions = masked_q_value.argmax(axis=1) if indexes.shape[0] == 0 else indexes[np.random.randint(indexes.shape[0])]
         else:
-            actions = argmax_values.argmax(axis=1)
-        return q_value, actions if len(actions) > 1 else actions[0]
+            actions = masked_q_value.argmax(axis=1)
+        try:
+            actions = actions if actions.shape[0] > 1 else actions[0]
+        except IndexError:
+            pass
+        return q_value, actions
 
     def train(self, x, y):
         self.__q_model.train_on_batch(x, y)
@@ -38,4 +43,4 @@ class Agent:
         self.__target_model.save(filepath=save_path)
 
     def _mask(self, states, q_values) -> Union[np.ndarray, None]:
-        return None
+        return q_values
