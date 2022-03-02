@@ -8,7 +8,11 @@ from cartpole.model import agent_model
 
 
 def on_episode_end(episode, reward, info):
-    print(f"episode {episode + 1}: \033[91mDONE")
+    print(f"episode {episode + 1}: \033[91mDONE\033[0m")
+
+
+def on_step_end():
+    env.render()
 
 
 if __name__ == "__main__":
@@ -17,15 +21,17 @@ if __name__ == "__main__":
     episodes = 1000000
     replay_buffer_size = 100
 
-    agent = CartPoleAgent(
-        model=agent_model(),
-        e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.5))
+    env = gym.make("CartPole-v1")
+    # agent = CartPoleAgent(
+    #     model=agent_model(),
+    #     e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.5))
 
     dqn = DQN(
-        env=gym.make("CartPole-v1"),
-        agent=agent,
+        env=env,
+        model=agent_model(),
         replay_buffer_size=replay_buffer_size)
     dqn.learn(
         episodes=episodes,
         buffer_sample_size=100,
+        on_step_end=on_step_end,
         on_episode_end=on_episode_end)

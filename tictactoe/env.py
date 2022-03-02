@@ -43,8 +43,6 @@ class TicTacToeEnvironment(Environment):
             "status": ""
         }
         if next_state[indices[index][0], indices[index][1]] != 0:
-            print(next_state)
-            input()
             self._reward = reward_reset
             self._done = True
             info["status"] = "RESET"

@@ -19,7 +19,7 @@ class Agent:
         self.learning_rate = model.optimizer.learning_rate
 
     def predict(self, state):
-        q_value = np.asarray(self.__target_model(state)).copy()
+        q_value = np.asarray(self.__q_model(state)).copy()
         masked_q_value = self._mask(state, q_value)
         self.__epsilon = self.__e_greedy_fn(self.__epsilon)
         if random.random() < self.__epsilon:
