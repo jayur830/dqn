@@ -1,9 +1,7 @@
 import os
-import random
 import gym
 
 from rl.dqn import DQN
-from cartpole.agent import CartPoleAgent
 from cartpole.model import agent_model
 
 
@@ -22,16 +20,13 @@ if __name__ == "__main__":
     replay_buffer_size = 100
 
     env = gym.make("CartPole-v1")
-    # agent = CartPoleAgent(
-    #     model=agent_model(),
-    #     e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.5))
 
     dqn = DQN(
         env=env,
         model=agent_model(),
         replay_buffer_size=replay_buffer_size)
-    dqn.learn(
+    dqn.fit(
         episodes=episodes,
-        buffer_sample_size=100,
+        batch_size=100,
         on_step_end=on_step_end,
         on_episode_end=on_episode_end)

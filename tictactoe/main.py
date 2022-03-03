@@ -33,13 +33,15 @@ if __name__ == "__main__":
     episodes = 1000000
     replay_buffer_size = 500
 
-    env = TicTacToeEnvironment(init_state=np.zeros(shape=(1, 3, 3, 1)))
+    env = TicTacToeEnvironment(init_state=np.zeros(shape=(3, 3, 1)))
 
     dqn = DQN(
         env=env,
         model=agent_model(),
         replay_buffer_size=replay_buffer_size)
-    dqn.learn(
+    dqn.fit(
         episodes=episodes,
-        buffer_sample_size=500,
-        on_episode_end=on_episode_end)
+        batch_size=500,
+        on_episode_end=on_episode_end,
+        checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward}.h5",
+        checkpoint_freq=100)

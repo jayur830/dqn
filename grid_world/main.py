@@ -1,13 +1,11 @@
 import os
 import numpy as np
-import random
 
 from collections import deque
-from rl.dqn import DQN
-from grid_world.env import GridWorldEnvironment
-from grid_world.agent import GridWorldAgent
-from grid_world.model import agent_model
 from grid_world.commons import reward_win, grid_world_width, grid_world_height
+from grid_world.env import GridWorldEnvironment
+from grid_world.model import agent_model
+from rl.dqn import DQN
 
 n_wins = 100
 win_counts = deque(maxlen=n_wins)
@@ -27,18 +25,15 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 1000
+    replay_buffer_size = 100
 
-    env = GridWorldEnvironment(init_state=np.zeros(shape=(grid_world_width, grid_world_height)))
-    agent = GridWorldAgent(
-        model=agent_model(),
-        e_greedy_fn=lambda epsilon: max(epsilon - 0.01 * random.randint(0, 10), 0.2))
+    env = GridWorldEnvironment(init_state=np.zeros(shape=(grid_world_width, grid_world_height, 1)))
 
     dqn = DQN(
         env=env,
-        agent=agent,
+        model=agent_model(),
         replay_buffer_size=replay_buffer_size)
-    dqn.learn(
+    dqn.fit(
         episodes=episodes,
-        buffer_sample_size=1000,
+        batch_size=100,
         on_episode_end=on_episode_end)
