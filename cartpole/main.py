@@ -9,7 +9,7 @@ def on_episode_end(episode, reward, info):
     print(f"episode {episode + 1}: \033[91mDONE\033[0m")
 
 
-def on_step_end():
+def on_step_end(state, action, reward, next_state, done, info):
     env.render()
 
 

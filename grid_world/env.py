@@ -10,7 +10,12 @@ from grid_world.commons import \
 
 
 class GridWorldEnvironment(Environment):
+    def __init__(self, init_state: np.ndarray):
+        super().__init__(init_state)
+        self.__iter = 0
+
     def step(self, action: int):
+        self.__iter += 1
         current_index = np.transpose(np.where(self._state == 1.))[0]
         goal_index = np.transpose(np.where(self._state == 2.))[0]
         info = {
@@ -34,23 +39,31 @@ class GridWorldEnvironment(Environment):
                 or current_index[1] < 0 \
                 or current_index[1] >= self._state.shape[1]:
             done = True
-            self._reward = reward_lose
+            reward = reward_lose
             info["status"] = "LOSE"
         elif current_index[0] == goal_index[0] and current_index[1] == goal_index[1]:
             done = True
-            self._reward = reward_win
+            reward = reward_win
             info["status"] = "WIN"
             next_state[current_index[0], current_index[1]] = 1.
         else:
-            self._reward = reward_continue
-            next_state[current_index[0], current_index[1]] = 1.
-            done = False
+            if self.__iter == 10:
+                done = True
+                reward = reward_lose
+                info["status"] = "LOSE"
+                self.__iter = 0
+            else:
+                done = False
+                reward = reward_continue
+                next_state[current_index[0], current_index[1]] = 1.
 
         self._state = next_state
-        return next_state, self._reward, done, info
+        return next_state, reward, done, info
 
     def reset(self):
         self._state = self._init_state.copy()
-        self._state[0, 0, 0] = 1.
-        self._state[grid_world_height - 1, grid_world_width - 1, 0] = 2.
+        row_indexes = np.random.choice(grid_world_height, size=2, replace=False)
+        col_indexes = np.random.choice(grid_world_width, size=2, replace=False)
+        self._state[row_indexes[0], col_indexes[0], 0] = 1.
+        self._state[row_indexes[1], col_indexes[1], 0] = 2.
         return self._state

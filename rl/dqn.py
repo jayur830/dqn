@@ -24,7 +24,8 @@ class DQN:
             episodes: int,
             batch_size: int,
             gamma: float = .9,
-            on_step_end: Callable = None,
+            action_mask: Callable = None,
+            on_step_end: Callable[[np.ndarray, int, float, np.ndarray, bool, Any], Any] = None,
             on_episode_end: Callable[[Any, Any, Any], Any] = None,
             checkpoint_path: str = None,
             checkpoint_freq: int = 100):
@@ -35,7 +36,10 @@ class DQN:
             while True:
                 step += 1
                 self.__epsilon = max(self.__epsilon * self.__epsilon_decay, 1e-2)
-                action = np.random.randint(self.__q_model.output_shape[-1]) if np.random.rand() <= self.__epsilon else np.argmax(self.__q_model(state.reshape((1,) + state.shape)))
+                if np.random.rand() <= self.__epsilon:
+                    action = np.random.randint(self.__q_model.output_shape[-1])
+                else:
+                    action = np.argmax(self.__q_model(state.reshape((1,) + state.shape)))
                 next_state, reward, done, info = self.__env.step(action)
                 acc_rewards += reward
                 self.__replay_buffer.put(state.reshape((1,) + state.shape), action, reward, next_state.reshape((1,) + state.shape), done)
@@ -47,7 +51,7 @@ class DQN:
                         q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
                         self.__q_model.optimizer.apply_gradients(zip(tape.gradient(self.__q_model.loss(q_values, q_target), self.__q_model.trainable_weights), self.__q_model.trainable_weights))
                 if on_step_end is not None:
-                    on_step_end()
+                    on_step_end(state, action, reward, next_state, done, info)
                 if done:
                     self.__target_model.set_weights(self.__q_model.get_weights())
                     break
