@@ -45,7 +45,7 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 100
+    replay_buffer_size = 1000
 
     env = GridWorldEnvironment(init_state=np.zeros(shape=(grid_world_width, grid_world_height, 1)))
 
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     dqn.fit(
         episodes=episodes,
         batch_size=100,
-        on_episode_end=on_episode_end,
-        on_step_end=on_step_end)
+        on_step_end=on_step_end,
+        on_episode_end=on_episode_end)

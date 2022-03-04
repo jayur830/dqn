@@ -41,11 +41,13 @@ class GridWorldEnvironment(Environment):
             done = True
             reward = reward_lose
             info["status"] = "LOSE"
+            self.__iter = 0
         elif current_index[0] == goal_index[0] and current_index[1] == goal_index[1]:
             done = True
             reward = reward_win
             info["status"] = "WIN"
             next_state[current_index[0], current_index[1]] = 1.
+            self.__iter = 0
         else:
             if self.__iter == 10:
                 done = True
