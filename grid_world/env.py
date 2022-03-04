@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 
 from rl.env import Environment
@@ -49,7 +50,7 @@ class GridWorldEnvironment(Environment):
             next_state[current_index[0], current_index[1]] = 1.
             self.__iter = 0
         else:
-            if self.__iter == 10:
+            if self.__iter == 100:
                 done = True
                 reward = reward_lose
                 info["status"] = "LOSE"

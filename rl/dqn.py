@@ -24,9 +24,9 @@ class DQN:
             episodes: int,
             batch_size: int,
             gamma: float = .9,
-            action_mask: Callable = None,
+            action_mask: Callable[[np.ndarray, np.ndarray], int] = None,
             on_step_end: Callable[[np.ndarray, int, float, np.ndarray, bool, Any], Any] = None,
-            on_episode_end: Callable[[Any, Any, Any], Any] = None,
+            on_episode_end: Callable[[int, float, Any], Any] = None,
             checkpoint_path: str = None,
             checkpoint_freq: int = 100):
         step, reward, info = 0, 0, None
@@ -37,14 +37,21 @@ class DQN:
                 step += 1
                 self.__epsilon = max(self.__epsilon * self.__epsilon_decay, 1e-2)
                 if np.random.rand() <= self.__epsilon:
-                    action = np.random.randint(self.__q_model.output_shape[-1])
+                    if action_mask is None:
+                        action = np.random.randint(self.__q_model.output_shape[-1])
+                    else:
+                        action = action_mask(state, np.random.choice(self.__q_model.output_shape[-1], size=self.__q_model.output_shape[-1], replace=False))
                 else:
-                    action = np.argmax(self.__q_model(state.reshape((1,) + state.shape)))
+                    if action_mask is None:
+                        action = np.argmax(self.__q_model(state.reshape((1,) + state.shape)))
+                    else:
+                        action = action_mask(state, np.asarray(self.__q_model(state.reshape((1,) + state.shape))).copy())
                 next_state, reward, done, info = self.__env.step(action)
                 acc_rewards += reward
+                print(next_state)
                 self.__replay_buffer.put(state.reshape((1,) + state.shape), action, reward, next_state.reshape((1,) + state.shape), done)
                 state = next_state
-                if step >= self.__replay_buffer_size:
+                if len(self.__replay_buffer) >= batch_size:
                     states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
                     with tf.GradientTape() as tape:
                         q_target = rewards + (1 - dones) * gamma * tf.reduce_max(self.__target_model(next_states), axis=1, keepdims=True)
@@ -56,6 +63,6 @@ class DQN:
                     self.__target_model.set_weights(self.__q_model.get_weights())
                     break
             if on_episode_end is not None and callable(on_episode_end):
-                on_episode_end(episode, reward, info)
+                on_episode_end(episode + 1, reward, info)
             if checkpoint_path is not None and (episode + 1) % checkpoint_freq == 0:
-                self.__target_model.save(checkpoint_path.format(episode=episode, reward=acc_rewards))
+                self.__target_model.save(checkpoint_path.format(episode=episode + 1, reward=acc_rewards))

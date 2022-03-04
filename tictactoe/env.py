@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 from rl.env import Environment
-from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win
+from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win, reward_continue
 
 indices = [[i, j] for i in range(3) for j in range(3)]
 
@@ -10,6 +10,19 @@ indices = [[i, j] for i in range(3) for j in range(3)]
 class TicTacToeEnvironment(Environment):
     def step(self, action: int):
         next_state = self._state.copy()
+
+        if not next_state.all():
+            if next_state[indices[action][0], indices[action][1]] != 0:
+                reward = reward_reset
+                done = True
+                return next_state, reward, done, { "status": "RESET" }
+            else:
+                next_state[indices[action][0], indices[action][1]] = 1.
+            self._state = next_state
+
+        done, winner, reward, info = self.__result(next_state)
+        if done:
+            return next_state, reward, done, info
 
         if not next_state.all():
             indexes = np.where(next_state.reshape(-1) == 0)[0]
@@ -23,45 +36,13 @@ class TicTacToeEnvironment(Environment):
         if done:
             return next_state, reward, done, info
 
-        if not next_state.all():
-            if next_state[indices[action][0], indices[action][1]] != 0:
-                reward = reward_reset
-                done = True
-                info["status"] = "RESET"
-                return next_state, reward, done, info
-            else:
-                next_state[indices[action][0], indices[action][1]] = 1.
-            self._state = next_state
-
-        done, winner, reward, info = self.__result(next_state)
-        if done:
-            return next_state, reward, done, info
-
         return next_state, reward, done, info
 
     def reset(self):
         self._state = self._init_state.copy()
+        index = np.random.randint(9)
+        self._state[indices[index][0], indices[index][1]] = -1.
         return self._state
-
-    def __play(self, next_state: np.ndarray, index: int):
-        info = {
-            "status": ""
-        }
-        if next_state[indices[index][0], indices[index][1]] != 0:
-            self._reward = reward_reset
-            self._done = True
-            info["status"] = "RESET"
-            return self._reward, next_state, info
-        next_state[indices[index][0], indices[index][1]] = 1.
-        self._done, winner, reward, info = self.__result(next_state)
-        self._reward = reward
-        if winner == -1:
-            info["status"] = "LOSE"
-        elif winner == 1:
-            info["status"] = "WIN"
-        elif winner == 0:
-            info["status"] = "DRAW" if self._done else "PLAY"
-        return self._reward, next_state, info
 
     def __result(self, next_state: np.ndarray):
         info = {
@@ -83,4 +64,4 @@ class TicTacToeEnvironment(Environment):
             return True, 0, reward_draw, info
         else:
             info["status"] = "PLAY"
-            return False, 0, reward_win, info
+            return False, 0, reward_continue, info
