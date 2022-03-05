@@ -23,7 +23,7 @@ class DQN:
     def fit(self,
             episodes: int,
             batch_size: int,
-            gamma: float = .9,
+            gamma: float = .99,
             action_mask: Callable[[np.ndarray, np.ndarray], int] = None,
             on_step_end: Callable[[np.ndarray, int, float, np.ndarray, bool, Any], Any] = None,
             on_episode_end: Callable[[int, float, Any], Any] = None,
@@ -48,7 +48,6 @@ class DQN:
                         action = action_mask(state, np.asarray(self.__q_model(state.reshape((1,) + state.shape))).copy())
                 next_state, reward, done, info = self.__env.step(action)
                 acc_rewards += reward
-                print(next_state)
                 self.__replay_buffer.put(state.reshape((1,) + state.shape), action, reward, next_state.reshape((1,) + state.shape), done)
                 state = next_state
                 if len(self.__replay_buffer) >= batch_size:
