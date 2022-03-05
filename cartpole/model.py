@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from cartpole.common import cartpole_state_dim, cartpole_action_dim
+from cartpole.commons import cartpole_state_dim, cartpole_action_dim
 
 
 def agent_model(

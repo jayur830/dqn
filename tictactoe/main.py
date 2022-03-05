@@ -27,7 +27,7 @@ def on_episode_end(episode, reward, info):
         color = "\033[91m"
     elif info["status"] == "WIN":
         color = "\033[94m"
-    print(f"episode {episode}: {color}{info['status']}, reward: {reward}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%")
+    print(f"episode {episode}: {color}{info['status']}, reward: {round(reward * 10) / 10}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%")
 
 
 def on_step_end(state, action, reward, next_state, done, info):
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
     episodes = 1000000
-    replay_buffer_size = 10000
+    replay_buffer_size = 1000
 
     env = TicTacToeEnvironment(init_state=np.zeros(shape=(3, 3, 1)))
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=128,
+        batch_size=8,
         action_mask=action_mask,
         on_episode_end=on_episode_end,
         on_step_end=on_step_end,

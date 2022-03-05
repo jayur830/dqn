@@ -74,6 +74,6 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=64,
+        batch_size=32,
         on_step_end=on_step_end,
         on_episode_end=on_episode_end)
