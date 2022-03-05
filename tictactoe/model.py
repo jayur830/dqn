@@ -12,7 +12,7 @@ def agent_model(
         kernel_initializer=kernel_initializer)(input_layer)
     x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
-        filters=128,
+        filters=64,
         kernel_size=3,
         padding="same",
         kernel_initializer=kernel_initializer)(x)

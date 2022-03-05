@@ -8,7 +8,7 @@ def agent_model(
         learning_rate: float = 0.01):
     input_layer = tf.keras.layers.Input(shape=(grid_world_width, grid_world_height, 1))
     x = tf.keras.layers.Conv2D(
-        filters=32,
+        filters=4,
         kernel_size=3,
         padding="same",
         strides=2,
@@ -17,7 +17,7 @@ def agent_model(
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.Conv2D(
-        filters=128,
+        filters=8,
         kernel_size=3,
         padding="same",
         strides=2,
