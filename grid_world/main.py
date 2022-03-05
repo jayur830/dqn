@@ -13,7 +13,7 @@ win_counts = deque(maxlen=n_wins)
 
 
 def on_episode_end(episode, reward, info):
-    win_counts.append(reward > 0)
+    win_counts.append(info["status"] == "WIN")
     color = ""
     if info["status"] == "LOSE":
         color = "\033[91m"
@@ -74,6 +74,6 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=32,
+        batch_size=64,
         on_step_end=on_step_end,
         on_episode_end=on_episode_end)
