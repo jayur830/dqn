@@ -13,7 +13,7 @@ win_counts = deque(maxlen=n_wins)
 
 
 def on_episode_end(episode, reward, info):
-    win_counts.append(reward == reward_win)
+    win_counts.append(reward > 0)
     color = ""
     if info["status"] == "LOSE":
         color = "\033[91m"
@@ -23,7 +23,7 @@ def on_episode_end(episode, reward, info):
 
 
 def on_step_end(state, action, reward, next_state, done, info):
-    if int(round(np.sum(win_counts) / n_wins * 100)) >= 30:
+    if int(round(np.sum(win_counts) / n_wins * 100)) >= 50:
         cell_size = 80
         img = np.zeros(shape=(cell_size * grid_world_height, cell_size * grid_world_width, 3), dtype=np.uint8)
         for i in range(1, grid_world_height):
@@ -74,6 +74,6 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=100,
+        batch_size=32,
         on_step_end=on_step_end,
         on_episode_end=on_episode_end)
