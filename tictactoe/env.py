@@ -8,13 +8,19 @@ indices = [[i, j] for i in range(3) for j in range(3)]
 
 
 class TicTacToeEnvironment(Environment):
+    def __init__(self, init_state: np.ndarray):
+        super().__init__(init_state)
+        self.__iter = 0
+
     def step(self, action: int):
         next_state = self._state.copy()
 
+        self.__iter += 1
         if not next_state.all():
             if next_state[indices[action][0], indices[action][1]] != 0:
                 reward = reward_reset
                 done = True
+                self.__iter = 0
                 return next_state, reward, done, { "status": "RESET" }
             else:
                 next_state[indices[action][0], indices[action][1]] = 1.
@@ -22,8 +28,10 @@ class TicTacToeEnvironment(Environment):
 
         done, winner, reward, info = self.__result(next_state)
         if done:
+            self.__iter = 0
             return next_state, reward, done, info
 
+        self.__iter += 1
         if not next_state.all():
             indexes = np.where(next_state.reshape(-1) == 0)[0]
             if indexes.shape[0] > 1:
@@ -34,6 +42,7 @@ class TicTacToeEnvironment(Environment):
 
         done, winner, reward, info = self.__result(next_state)
         if done:
+            self.__iter = 0
             return next_state, reward, done, info
 
         return next_state, reward, done, info
@@ -58,7 +67,7 @@ class TicTacToeEnvironment(Environment):
                 or next_state[0, 0] + next_state[1, 1] + next_state[2, 2] == 3 \
                 or next_state[0, 2] + next_state[1, 1] + next_state[2, 0] == 3:
             info["status"] = "WIN"
-            return True, 1, reward_win, info
+            return True, 1, 9 - self.__iter, info
         elif np.where(next_state.reshape(-1) == 0)[0].shape[0] == 0:
             info["status"] = "DRAW"
             return True, 0, reward_draw, info
