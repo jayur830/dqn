@@ -54,12 +54,6 @@ class DQN:
                 acc_rewards += reward
                 self.__replay_buffer.put(np.reshape(state, (1,) + state.shape), action, reward, np.reshape(next_state, (1,) + state.shape), done)
                 state = next_state
-                if len(self.__replay_buffer) >= batch_size:
-                    states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
-                    with tf.GradientTape() as tape:
-                        q_target = rewards + (1 - dones) * gamma * tf.reduce_max(self.__target_model(next_states), axis=1, keepdims=True)
-                        q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
-                        self.__q_model.optimizer.apply_gradients(zip(tape.gradient(self.__q_model.loss(q_values, q_target), self.__q_model.trainable_weights), self.__q_model.trainable_weights))
                 if on_step_end is not None:
                     on_step_end(state, action, reward, next_state, done, info)
                 if step % target_update_freq == 0:
@@ -70,6 +64,12 @@ class DQN:
                         weights.append(q_weights[i] * tau + target_weights[i] * (1 - tau))
                     self.__target_model.set_weights(weights)
                 if done:
+                    if len(self.__replay_buffer) >= batch_size:
+                        states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
+                        with tf.GradientTape() as tape:
+                            q_target = rewards + (1 - dones) * gamma * tf.reduce_max(self.__target_model(next_states), axis=1, keepdims=True)
+                            q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
+                            self.__q_model.optimizer.apply_gradients(zip(tape.gradient(self.__q_model.loss(q_values, q_target), self.__q_model.trainable_weights), self.__q_model.trainable_weights))
                     break
             if on_episode_end is not None and callable(on_episode_end):
                 on_episode_end(episode + 1, reward, info)
