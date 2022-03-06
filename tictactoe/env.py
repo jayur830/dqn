@@ -31,7 +31,6 @@ class TicTacToeEnvironment(Environment):
             self.__iter = 0
             return next_state, reward, done, info
 
-        self.__iter += 1
         if not next_state.all():
             indexes = np.where(next_state.reshape(-1) == 0)[0]
             if indexes.shape[0] > 1:
@@ -67,7 +66,7 @@ class TicTacToeEnvironment(Environment):
                 or next_state[0, 0] + next_state[1, 1] + next_state[2, 2] == 3 \
                 or next_state[0, 2] + next_state[1, 1] + next_state[2, 0] == 3:
             info["status"] = "WIN"
-            return True, 1, (9 - self.__iter) * .1 + reward_win, info
+            return True, 1, (4 - self.__iter) * .1 + reward_win, info
         elif np.where(next_state.reshape(-1) == 0)[0].shape[0] == 0:
             info["status"] = "DRAW"
             return True, 0, reward_draw, info

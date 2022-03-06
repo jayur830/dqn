@@ -26,6 +26,7 @@ class DQN:
             tau: float = 1e-2,
             epsilon_decay: float = .99,
             e_greedy_threshold: float = 0.1,
+            target_update_freq: int = 128,
             action_mask: Callable[[np.ndarray, np.ndarray], int] = None,
             on_step_end: Callable[[np.ndarray, int, float, np.ndarray, bool, Any], Any] = None,
             on_episode_end: Callable[[int, float, Any], Any] = None,
@@ -60,8 +61,14 @@ class DQN:
                         self.__q_model.optimizer.apply_gradients(zip(tape.gradient(self.__q_model.loss(q_values, q_target), self.__q_model.trainable_weights), self.__q_model.trainable_weights))
                 if on_step_end is not None:
                     on_step_end(state, action, reward, next_state, done, info)
+                if step % target_update_freq == 0:
+                    weights = []
+                    q_weights = self.__q_model.get_weights()
+                    target_weights = self.__target_model.get_weights()
+                    for i in range(len(q_weights)):
+                        weights.append(q_weights[i] * tau + target_weights[i] * (1 - tau))
+                    self.__target_model.set_weights(weights)
                 if done:
-                    self.__target_model.set_weights(self.__q_model.get_weights() * tau + self.__target_model.get_weights() * (1 - tau))
                     break
             if on_episode_end is not None and callable(on_episode_end):
                 on_episode_end(episode + 1, reward, info)

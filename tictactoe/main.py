@@ -32,20 +32,54 @@ def on_episode_end(episode, reward, info):
 
 def on_step_end(state, action, reward, next_state, done, info):
     if win_rate >= 50:
-        img = np.zeros(shape=(300, 300, 3), dtype=np.uint8)
-        img = cv2.line(img, pt1=(0, 100), pt2=(300, 100), color=(200, 200, 200))
-        img = cv2.line(img, pt1=(0, 200), pt2=(300, 200), color=(200, 200, 200))
-        img = cv2.line(img, pt1=(100, 0), pt2=(100, 300), color=(200, 200, 200))
-        img = cv2.line(img, pt1=(200, 0), pt2=(200, 300), color=(200, 200, 200))
+        cell_size = 100
+        img = np.zeros(
+            shape=(3 * cell_size, 3 * cell_size, 3),
+            dtype=np.uint8)
+        img = cv2.line(
+            img=img,
+            pt1=(0, cell_size),
+            pt2=(3 * cell_size, cell_size),
+            color=(200, 200, 200))
+        img = cv2.line(
+            img=img,
+            pt1=(0, 2 * cell_size),
+            pt2=(3 * cell_size, 2 * cell_size),
+            color=(200, 200, 200))
+        img = cv2.line(
+            img=img,
+            pt1=(cell_size, 0),
+            pt2=(cell_size, 3 * cell_size),
+            color=(200, 200, 200))
+        img = cv2.line(
+            img=img,
+            pt1=(2 * cell_size, 0),
+            pt2=(2 * cell_size, 3 * cell_size),
+            color=(200, 200, 200))
         next_state = next_state.reshape(next_state.shape[:-1])
 
         for i in range(next_state.shape[0]):
             for j in range(next_state.shape[1]):
                 if next_state[i, j] == 1.:
-                    img = cv2.circle(img, center=(i * 100 + 50, j * 100 + 50), radius=30, color=(0, 0, 255), thickness=2)
+                    img = cv2.circle(
+                        img=img,
+                        center=(int(i * cell_size + cell_size / 2), int(j * cell_size + cell_size / 2)),
+                        radius=int(cell_size * .3),
+                        color=(0, 0, 255),
+                        thickness=2)
                 elif next_state[i, j] == -1.:
-                    img = cv2.line(img, pt1=(i * 100 + 20, j * 100 + 20), pt2=(i * 100 + 80, j * 100 + 80), color=(0, 255, 0), thickness=2)
-                    img = cv2.line(img, pt1=(i * 100 + 80, j * 100 + 20), pt2=(i * 100 + 20, j * 100 + 80), color=(0, 255, 0), thickness=2)
+                    img = cv2.line(
+                        img=img,
+                        pt1=(int(i * cell_size + cell_size * .2), int(j * cell_size + cell_size * .2)),
+                        pt2=(int(i * cell_size + cell_size * .8), int(j * cell_size + cell_size * .8)),
+                        color=(0, 255, 0),
+                        thickness=2)
+                    img = cv2.line(
+                        img=img,
+                        pt1=(int(i * cell_size + cell_size * .8), int(j * cell_size + cell_size * .2)),
+                        pt2=(int(i * cell_size + cell_size * .2), int(j * cell_size + cell_size * .8)),
+                        color=(0, 255, 0),
+                        thickness=2)
 
         cv2.imshow("Tic Tac Toe", img)
         cv2.waitKey(1)
@@ -73,7 +107,7 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=8,
+        batch_size=64,
         action_mask=action_mask,
         on_episode_end=on_episode_end,
         on_step_end=on_step_end,
