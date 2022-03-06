@@ -85,17 +85,16 @@ def on_step_end(state, action, reward, next_state, done, info):
         cv2.waitKey(1)
 
 
-def action_mask(state, q_output):
-    q_output = tf.reshape(q_output, [-1])
-    q_output = (q_output - tf.reduce_min(q_output)) / (tf.reduce_max(q_output) - tf.reduce_min(q_output))
-    q_output = tf.where(np.reshape(state, -1) != empty, 0, q_output)
-    return tf.argmax(q_output)
+def action_mask(states, q_outputs):
+    q_outputs = tf.reshape(q_outputs, [tf.shape(q_outputs)[0], -1])
+    q_outputs = tf.where(tf.reshape(states, [tf.shape(states)[0], -1]) != empty, tf.reduce_min(q_outputs), q_outputs)
+    return q_outputs
 
 
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 100000
+    episodes = 500000
     replay_buffer_size = 1000
 
     env = TicTacToeEnvironment(init_state=np.ones(shape=(3, 3, 1)) * empty)
@@ -106,9 +105,9 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=256,
+        batch_size=64,
         action_mask=action_mask,
-        target_update_freq=256,
+        target_update_freq=1024,
         on_episode_end=on_episode_end,
         # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
