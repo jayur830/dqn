@@ -95,7 +95,7 @@ def action_mask(state, q_output):
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 1000000
+    episodes = 100000
     replay_buffer_size = 1000
 
     env = TicTacToeEnvironment(init_state=np.ones(shape=(3, 3, 1)) * empty)
@@ -106,11 +106,13 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=64,
+        batch_size=256,
         action_mask=action_mask,
-        target_update_freq=512,
+        target_update_freq=256,
         on_episode_end=on_episode_end,
         # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )
+
+    dqn.save("tictactoe.h5")
