@@ -1,9 +1,8 @@
-gomoku_width = 9
-gomoku_height = 9
+gomoku_size = 15
 reward_reset = -10
-reward_draw = 10
+reward_draw = 1
 reward_lose = -1
-reward_win = 100
+reward_win = 10
 reward_continue = -0.1
 black = 1.
 white = -1.

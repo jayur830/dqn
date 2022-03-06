@@ -1,9 +1,10 @@
 import tensorflow as tf
 import numpy as np
 
+from typing import Callable, Any
 from rl.env import Environment
 from rl.replay_buffer import ReplayBuffer
-from typing import Callable, Any
+from rl.utils import random_indexes, randint
 
 
 class DQN:
@@ -38,20 +39,20 @@ class DQN:
             state = self.__env.reset()
             while True:
                 step += 1
-                self.__epsilon = max(self.__epsilon * epsilon_decay, e_greedy_threshold)
-                if np.random.rand() <= self.__epsilon:
+                self.__epsilon = tf.maximum(self.__epsilon * epsilon_decay, e_greedy_threshold)
+                if tf.random.uniform(shape=(1,))[0] <= self.__epsilon:
                     if action_mask is None:
-                        action = np.random.randint(self.__q_model.output_shape[-1])
+                        action = randint(self.__q_model.output_shape[-1])
                     else:
-                        action = action_mask(state, np.random.choice(self.__q_model.output_shape[-1], size=self.__q_model.output_shape[-1], replace=False))
+                        action = action_mask(state, random_indexes(self.__q_model.output_shape[-1]))
                 else:
                     if action_mask is None:
-                        action = np.argmax(self.__q_model(state.reshape((1,) + state.shape)))
+                        action = np.argmax(self.__q_model(np.reshape(state, (1,) + state.shape)))
                     else:
-                        action = action_mask(state, np.asarray(self.__q_model(state.reshape((1,) + state.shape))).copy())
+                        action = action_mask(state, self.__q_model(state.reshape((1,) + state.shape)))
                 next_state, reward, done, info = self.__env.step(action)
                 acc_rewards += reward
-                self.__replay_buffer.put(state.reshape((1,) + state.shape), action, reward, next_state.reshape((1,) + state.shape), done)
+                self.__replay_buffer.put(np.reshape(state, (1,) + state.shape), action, reward, np.reshape(next_state, (1,) + state.shape), done)
                 state = next_state
                 if len(self.__replay_buffer) >= batch_size:
                     states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
@@ -74,3 +75,14 @@ class DQN:
                 on_episode_end(episode + 1, reward, info)
             if checkpoint_path is not None and (episode + 1) % checkpoint_freq == 0:
                 self.__target_model.save(checkpoint_path.format(episode=episode + 1, reward=acc_rewards))
+
+    def save(self, filepath: str = "model.h5"):
+        self.__target_model.save(filepath)
+
+    def load(self, filepath: str):
+        self.__target_model = tf.keras.models.load_model(filepath)
+        self.__q_model = tf.keras.models.clone_model(self.__target_model)
+        self.__q_model.set_weights(self.__target_model.get_weights())
+        self.__q_model.compile(
+            optimizer=self.__target_model.optimizer,
+            loss=self.__target_model.loss)

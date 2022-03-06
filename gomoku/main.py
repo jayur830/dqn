@@ -1,12 +1,13 @@
 import os
+import tensorflow as tf
 import numpy as np
 import cv2
 
 from collections import deque
 from rl.dqn import DQN
-from gomoku.env import TicTacToeEnvironment
+from gomoku.env import GomokuEnvironment
 from gomoku.model import agent_model
-from gomoku.commons import gomoku_width, gomoku_height, black, white, empty
+from gomoku.commons import gomoku_size, reward_win, black, white, empty
 
 n_wins, win_rate = 100, 0
 win_counts = deque(maxlen=n_wins)
@@ -14,7 +15,7 @@ win_counts = deque(maxlen=n_wins)
 
 def on_episode_end(episode, reward, info):
     global win_rate
-    win_counts.append(reward > 0)
+    win_counts.append(info["status"] == "WIN")
     win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
     color = ""
     if info["status"] == "RESET":
@@ -29,23 +30,23 @@ def on_episode_end(episode, reward, info):
 
 
 def on_step_end(state, action, reward, next_state, done, info):
-    if win_rate >= 50:
+    if win_rate >= 0:
         cell_size = 50
-        img = np.zeros(shape=(cell_size * (gomoku_height + 1), cell_size * (gomoku_width + 1), 3))
+        img = np.zeros(shape=(cell_size * (gomoku_size + 1), cell_size * (gomoku_size + 1), 3))
         img[:, :, 0], img[:, :, 1], img[:, :, 2] = 68 / 255., 166 / 255., 229 / 255.
 
-        for i in range(1, gomoku_height + 1):
+        for i in range(1, gomoku_size + 1):
             img = cv2.line(
                 img=img,
                 pt1=(cell_size, cell_size * i),
-                pt2=(cell_size * gomoku_width, cell_size * i),
+                pt2=(cell_size * gomoku_size, cell_size * i),
                 color=(50 / 255., 50 / 255., 50 / 255.),
                 thickness=1)
-        for i in range(1, gomoku_width + 1):
+        for i in range(1, gomoku_size + 1):
             img = cv2.line(
                 img=img,
                 pt1=(cell_size * i, cell_size),
-                pt2=(cell_size * i, cell_size * gomoku_height),
+                pt2=(cell_size * i, cell_size * gomoku_size),
                 color=(50 / 255., 50 / 255., 50 / 255.),
                 thickness=1)
 
@@ -72,20 +73,19 @@ def on_step_end(state, action, reward, next_state, done, info):
 
 
 def action_mask(state, q_output):
-    indexes = np.where(state.reshape(-1) != empty)[0]
-    q_output = q_output.reshape(-1)
-    q_output = (q_output - np.min(q_output)) / (np.max(q_output) - np.min(q_output))
-    q_output[indexes] = 0
-    return q_output.argmax() if indexes.shape[0] > 0 else -1
+    q_output = tf.reshape(q_output, [-1])
+    q_output = (q_output - tf.reduce_min(q_output)) / (tf.reduce_max(q_output) - tf.reduce_min(q_output))
+    q_output = tf.where(np.reshape(state, -1) != empty, 0, q_output)
+    return tf.argmax(q_output)
 
 
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 1000000
-    replay_buffer_size = 1000
+    episodes = 100
+    replay_buffer_size = 10000
 
-    env = TicTacToeEnvironment(init_state=np.ones(shape=(gomoku_height, gomoku_width, 1)) * empty)
+    env = GomokuEnvironment(init_state=np.ones(shape=(gomoku_size, gomoku_size, 1)) * empty)
 
     dqn = DQN(
         env=env,
@@ -98,6 +98,8 @@ if __name__ == "__main__":
         target_update_freq=512,
         on_episode_end=on_episode_end,
         on_step_end=on_step_end,
-        # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
+        # checkpoint_path="checkpoint/gomoku_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )
+
+    dqn.save("gomoku.h5")
