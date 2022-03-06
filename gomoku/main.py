@@ -29,7 +29,7 @@ def on_episode_end(episode, reward, info):
 
 
 def on_step_end(state, action, reward, next_state, done, info):
-    if win_rate >= 50:
+    if win_rate >= 0:
         cell_size = 50
         img = np.zeros(shape=(cell_size * (gomoku_height + 1), cell_size * (gomoku_width + 1), 3))
         img[:, :, 0], img[:, :, 1], img[:, :, 2] = 68 / 255., 166 / 255., 229 / 255.

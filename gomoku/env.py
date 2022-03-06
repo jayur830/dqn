@@ -114,8 +114,12 @@ class TicTacToeEnvironment(Environment):
             elif np.sum(np.sum(state_affine2[:, j:j + 5], axis=1) == white * 5) > 0:
                 info["status"] = "WIN" if self.__agent_is == white else "LOSE"
                 return True, white, reward_win if self.__agent_is == white else reward_lose, info
-        info["status"] = "PLAY"
-        return False, 0, reward_continue, info
+        if np.sum(next_state == empty) > 0:
+            info["status"] = "PLAY"
+            return False, 0, reward_continue, info
+        else:
+            info["status"] = "DRAW"
+            return True, 0, reward_draw, info
 
     def __affine1(self, x):
         w, h = x.shape[1], x.shape[0]
