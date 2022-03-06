@@ -16,7 +16,7 @@ win_counts = deque(maxlen=n_wins)
 def on_episode_end(episode, reward, info):
     global win_rate
     win_counts.append(reward > 0)
-    win_rate = int(round(np.sum(win_counts) / n_wins * 100))
+    win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
     color = ""
     if info["status"] == "RESET":
         color = "\033[93m"

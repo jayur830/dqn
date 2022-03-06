@@ -15,7 +15,7 @@ win_counts = deque(maxlen=n_wins)
 def on_episode_end(episode, reward, info):
     global win_rate
     win_counts.append(reward > 0)
-    win_rate = int(round(np.sum(win_counts) / n_wins * 100))
+    win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
     color = ""
     if info["status"] == "RESET":
         color = "\033[93m"
@@ -29,7 +29,7 @@ def on_episode_end(episode, reward, info):
 
 
 def on_step_end(state, action, reward, next_state, done, info):
-    if win_rate >= 0:
+    if win_rate >= 50:
         cell_size = 50
         img = np.zeros(shape=(cell_size * (gomoku_height + 1), cell_size * (gomoku_width + 1), 3))
         img[:, :, 0], img[:, :, 1], img[:, :, 2] = 68 / 255., 166 / 255., 229 / 255.

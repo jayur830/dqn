@@ -19,7 +19,7 @@ def on_episode_end(episode, reward, info):
         color = "\033[91m"
     elif info["status"] == "WIN":
         color = "\033[94m"
-    print(f"episode {episode}: {color}{info['status']}, reward: {reward}\033[0m,\t\trate of wins for recent {n_wins} episodes: {int(round(np.sum(win_counts) / n_wins * 100))}%")
+    print(f"episode {episode}: {color}{info['status']}, reward: {reward}\033[0m,\t\trate of wins for recent {n_wins} episodes: {int(round(np.sum(win_counts) / len(win_counts) * 100))}%")
 
 
 def on_step_end(state, action, reward, next_state, done, info):
