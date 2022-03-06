@@ -178,6 +178,19 @@ if __name__ == "__main__":
                             center=(cell_size * (indices[action, 1] + 1), cell_size * (indices[action, 0] + 1)),
                             radius=int(cell_size * .45))
                         pygame.display.flip()
+                        done, winner = result(board)
+                        if done:
+                            font = pygame.font.Font("RIX모던고딕B.TTF", 14)
+                            if winner == agent:
+                                text = font.render("LOSE", True, (255, 0, 0))
+                                screen.blit(text, dest=(int(gomoku_size * cell_size * .5), int(cell_size * .35)))
+                            elif winner == human:
+                                text = font.render("WIN", True, (0, 0, 255))
+                                screen.blit(text, dest=(int(gomoku_size * cell_size * .5), int(cell_size * .35)))
+                            else:
+                                text = font.render("DRAW", True, (0, 255, 0))
+                                screen.blit(text, dest=(int(gomoku_size * cell_size * .5), int(cell_size * .35)))
+                            pygame.display.flip()
             elif event.type == pygame.QUIT:
                 run = False
 
