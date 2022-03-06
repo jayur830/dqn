@@ -6,9 +6,8 @@ import random
 from collections import deque
 from rl.dqn import DQN
 from tictactoe.env import TicTacToeEnvironment
-from tictactoe.agent import TicTacToeAgent
 from tictactoe.model import agent_model
-from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win
+from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win, agent, enemy, empty
 
 n_wins, win_rate = 100, 0
 win_counts = deque(maxlen=n_wins)
@@ -60,14 +59,14 @@ def on_step_end(state, action, reward, next_state, done, info):
 
         for i in range(next_state.shape[0]):
             for j in range(next_state.shape[1]):
-                if next_state[i, j] == 1.:
+                if next_state[i, j] == agent:
                     img = cv2.circle(
                         img=img,
                         center=(int(i * cell_size + cell_size / 2), int(j * cell_size + cell_size / 2)),
                         radius=int(cell_size * .3),
                         color=(0, 0, 255),
                         thickness=2)
-                elif next_state[i, j] == -1.:
+                elif next_state[i, j] == enemy:
                     img = cv2.line(
                         img=img,
                         pt1=(int(i * cell_size + cell_size * .2), int(j * cell_size + cell_size * .2)),
@@ -86,7 +85,7 @@ def on_step_end(state, action, reward, next_state, done, info):
 
 
 def action_mask(state, q_output):
-    indexes = np.where(state.reshape(-1) != 0)[0]
+    indexes = np.where(state.reshape(-1) != empty)[0]
     q_output = q_output.reshape(-1)
     q_output = (q_output - np.min(q_output)) / (np.max(q_output) - np.min(q_output))
     q_output[indexes] = 0
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     episodes = 1000000
     replay_buffer_size = 1000
 
-    env = TicTacToeEnvironment(init_state=np.zeros(shape=(3, 3, 1)))
+    env = TicTacToeEnvironment(init_state=np.ones(shape=(3, 3, 1)) * empty)
 
     dqn = DQN(
         env=env,
@@ -109,6 +108,7 @@ if __name__ == "__main__":
         episodes=episodes,
         batch_size=64,
         action_mask=action_mask,
+        target_update_freq=512,
         on_episode_end=on_episode_end,
         on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
