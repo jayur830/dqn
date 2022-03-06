@@ -44,12 +44,14 @@ class DQN:
                     if action_mask is None:
                         action = randint(self.__q_model.output_shape[-1])
                     else:
-                        action = action_mask(state, random_indexes(self.__q_model.output_shape[-1]))
+                        rand_indexes = random_indexes(self.__q_model.output_shape[-1])
+                        masked_indexes = tf.reshape(action_mask(tf.reshape(state, tf.concat([[1], tf.shape(state)], axis=0)), tf.reshape(rand_indexes, tf.concat([[1], tf.shape(rand_indexes)], axis=0))), [-1])
+                        action = tf.argmax(masked_indexes)
                 else:
-                    if action_mask is None:
-                        action = np.argmax(self.__q_model(np.reshape(state, (1,) + state.shape)))
-                    else:
-                        action = action_mask(state, self.__q_model(state.reshape((1,) + state.shape)))
+                    q_output = self.__q_model(tf.reshape(state, tf.concat([[1], tf.shape(state)], axis=0)))
+                    if action_mask is not None:
+                        q_output = action_mask(tf.reshape(state, tf.concat([[1], tf.shape(state)], axis=0)), q_output)
+                    action = tf.argmax(q_output, axis=1)[0]
                 next_state, reward, done, info = self.__env.step(action)
                 acc_rewards += reward
                 self.__replay_buffer.put(np.reshape(state, (1,) + state.shape), action, reward, np.reshape(next_state, (1,) + state.shape), done)
@@ -67,7 +69,10 @@ class DQN:
                     if len(self.__replay_buffer) >= batch_size:
                         states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
                         with tf.GradientTape() as tape:
-                            q_target = rewards + (1 - dones) * gamma * tf.reduce_max(self.__target_model(next_states), axis=1, keepdims=True)
+                            next_q_values = self.__target_model(next_states)
+                            if action_mask is not None:
+                                next_q_values = action_mask(next_states, self.__target_model(next_states))
+                            q_target = rewards + (1 - dones) * gamma * tf.reduce_max(next_q_values, axis=1, keepdims=True)
                             q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
                             self.__q_model.optimizer.apply_gradients(zip(tape.gradient(self.__q_model.loss(q_values, q_target), self.__q_model.trainable_weights), self.__q_model.trainable_weights))
                     break
