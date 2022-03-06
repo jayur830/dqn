@@ -11,7 +11,7 @@ class GomokuEnvironment(Environment):
     def __init__(self, init_state: np.ndarray):
         super().__init__(init_state)
         self.__iter = 0
-        self.__max_iter = gomoku_size * 4 - (gomoku_size % 2 != 0)
+        self.__max_iter = 25
         self.__first_is = 0
         self.__agent_is = 0
 
@@ -48,7 +48,6 @@ class GomokuEnvironment(Environment):
         return next_state, reward, done, info
 
     def reset(self):
-
         self._state = self._init_state.copy()
         self.__first_is = [black, white][np.random.randint(2)]
         self._state[self._state.shape[0] // 2, self._state.shape[1] // 2] = self.__first_is

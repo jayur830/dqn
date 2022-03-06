@@ -1,4 +1,5 @@
 import os
+import tensorflow as tf
 import numpy as np
 import cv2
 import random
@@ -15,7 +16,7 @@ win_counts = deque(maxlen=n_wins)
 
 def on_episode_end(episode, reward, info):
     global win_rate
-    win_counts.append(reward > 0)
+    win_counts.append(info["status"] == "WIN")
     win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
     color = ""
     if info["status"] == "RESET":
@@ -85,11 +86,10 @@ def on_step_end(state, action, reward, next_state, done, info):
 
 
 def action_mask(state, q_output):
-    indexes = np.where(state.reshape(-1) != empty)[0]
-    q_output = q_output.reshape(-1)
-    q_output = (q_output - np.min(q_output)) / (np.max(q_output) - np.min(q_output))
-    q_output[indexes] = 0
-    return q_output.argmax() if indexes.shape[0] > 0 else -1
+    q_output = tf.reshape(q_output, [-1])
+    q_output = (q_output - tf.reduce_min(q_output)) / (tf.reduce_max(q_output) - tf.reduce_min(q_output))
+    q_output = tf.where(np.reshape(state, -1) != empty, 0, q_output)
+    return tf.argmax(q_output)
 
 
 if __name__ == "__main__":
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         action_mask=action_mask,
         target_update_freq=512,
         on_episode_end=on_episode_end,
-        on_step_end=on_step_end,
+        # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )

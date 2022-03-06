@@ -82,8 +82,8 @@ def action_mask(state, q_output):
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 100
-    replay_buffer_size = 10000
+    episodes = 10000
+    replay_buffer_size = 1000
 
     env = GomokuEnvironment(init_state=np.ones(shape=(gomoku_size, gomoku_size, 1)) * empty)
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         action_mask=action_mask,
         target_update_freq=512,
         on_episode_end=on_episode_end,
-        on_step_end=on_step_end,
+        # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/gomoku_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )
