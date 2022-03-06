@@ -67,8 +67,8 @@ def on_step_end(state, action, reward, next_state, done, info):
                 color=(1., 1., 1.),
                 thickness=-1)
 
-        cv2.imshow("Tic Tac Toe", img)
-        cv2.waitKey()
+        cv2.imshow("Gomoku", img)
+        cv2.waitKey(1)
 
 
 def action_mask(state, q_output):
