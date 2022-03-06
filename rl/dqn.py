@@ -7,7 +7,7 @@ from typing import Callable, Any
 
 
 class DQN:
-    def __init__(self, env: Environment, model: tf.keras.models.Model, replay_buffer_size: int = 1000, epsilon: float = 1., epsilon_decay: float = .999):
+    def __init__(self, env: Environment, model: tf.keras.models.Model, replay_buffer_size: int = 1000, epsilon: float = 1.):
         self.__env = env
         self.__target_model = model
         self.__q_model = tf.keras.models.clone_model(model)
@@ -18,12 +18,14 @@ class DQN:
         self.__replay_buffer = ReplayBuffer(maxlen=replay_buffer_size)
         self.__replay_buffer_size = replay_buffer_size
         self.__epsilon = epsilon
-        self.__epsilon_decay = epsilon_decay
 
     def fit(self,
             episodes: int,
             batch_size: int,
-            gamma: float = .99,
+            gamma: float = .9,
+            tau: float = 1e-2,
+            epsilon_decay: float = .99,
+            e_greedy_threshold: float = 0.1,
             action_mask: Callable[[np.ndarray, np.ndarray], int] = None,
             on_step_end: Callable[[np.ndarray, int, float, np.ndarray, bool, Any], Any] = None,
             on_episode_end: Callable[[int, float, Any], Any] = None,
@@ -35,7 +37,7 @@ class DQN:
             state = self.__env.reset()
             while True:
                 step += 1
-                self.__epsilon = max(self.__epsilon * self.__epsilon_decay, 1e-2)
+                self.__epsilon = max(self.__epsilon * epsilon_decay, e_greedy_threshold)
                 if np.random.rand() <= self.__epsilon:
                     if action_mask is None:
                         action = np.random.randint(self.__q_model.output_shape[-1])
@@ -59,7 +61,7 @@ class DQN:
                 if on_step_end is not None:
                     on_step_end(state, action, reward, next_state, done, info)
                 if done:
-                    self.__target_model.set_weights(self.__q_model.get_weights())
+                    self.__target_model.set_weights(self.__q_model.get_weights() * tau + self.__target_model.get_weights() * (1 - tau))
                     break
             if on_episode_end is not None and callable(on_episode_end):
                 on_episode_end(episode + 1, reward, info)
