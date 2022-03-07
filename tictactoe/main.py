@@ -14,7 +14,7 @@ n_wins, win_rate = 100, 0
 win_counts = deque(maxlen=n_wins)
 
 
-def on_episode_end(episode, reward, info):
+def on_episode_end(episode, reward, loss, info):
     global win_rate
     win_counts.append(info["status"] == "WIN")
     win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
@@ -27,11 +27,11 @@ def on_episode_end(episode, reward, info):
         color = "\033[91m"
     elif info["status"] == "WIN":
         color = "\033[94m"
-    print(f"episode {episode}: {color}{info['status']}, reward: {round(reward * 10) / 10}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%")
+    print(f"episode {episode}: {color}{info['status']}, reward: {round(reward * 10) / 10}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%, loss: {tf.reduce_mean(loss):.4f}")
 
 
 def on_step_end(state, action, reward, next_state, done, info):
-    if win_rate >= 50:
+    if win_rate >= 0:
         cell_size = 100
         img = np.zeros(
             shape=(3 * cell_size, 3 * cell_size, 3),
@@ -94,8 +94,8 @@ def action_mask(states, q_outputs):
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 500000
-    replay_buffer_size = 1000
+    episodes = 10000
+    replay_buffer_size = 10000
 
     env = TicTacToeEnvironment(init_state=np.ones(shape=(3, 3, 1)) * empty)
 
@@ -107,9 +107,9 @@ if __name__ == "__main__":
         episodes=episodes,
         batch_size=64,
         action_mask=action_mask,
-        target_update_freq=1024,
+        target_update_freq=128,
         on_episode_end=on_episode_end,
-        # on_step_end=on_step_end,
+        on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )

@@ -13,7 +13,7 @@ n_wins, win_rate = 100, 0
 win_counts = deque(maxlen=n_wins)
 
 
-def on_episode_end(episode, reward, info):
+def on_episode_end(episode, reward, loss, info):
     global win_rate
     win_counts.append(info["status"] == "WIN")
     win_rate = int(round(np.sum(win_counts) / len(win_counts) * 100))
@@ -26,7 +26,7 @@ def on_episode_end(episode, reward, info):
         color = "\033[91m"
     elif info["status"] == "WIN":
         color = "\033[94m"
-    print(f"episode {episode}: {color}{info['status']}, reward: {round(reward * 10) / 10}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%")
+    print(f"episode {episode}: {color}{info['status']}, reward: {round(reward * 10) / 10}\033[0m,\t\trate of wins for recent {n_wins} episodes: {win_rate}%, loss: {tf.reduce_mean(loss):.4f}")
 
 
 def on_step_end(state, action, reward, next_state, done, info):
@@ -72,17 +72,16 @@ def on_step_end(state, action, reward, next_state, done, info):
         cv2.waitKey(1)
 
 
-def action_mask(state, q_output):
-    q_output = tf.reshape(q_output, [-1])
-    q_output = (q_output - tf.reduce_min(q_output)) / (tf.reduce_max(q_output) - tf.reduce_min(q_output))
-    q_output = tf.where(np.reshape(state, -1) != empty, 0, q_output)
-    return tf.argmax(q_output)
+def action_mask(states, q_outputs):
+    q_outputs = tf.reshape(q_outputs, [tf.shape(q_outputs)[0], -1])
+    q_outputs = tf.where(tf.reshape(states, [tf.shape(states)[0], -1]) != empty, tf.reduce_min(q_outputs), q_outputs)
+    return q_outputs
 
 
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 10000
+    episodes = 1000
     replay_buffer_size = 1000
 
     env = GomokuEnvironment(init_state=np.ones(shape=(gomoku_size, gomoku_size, 1)) * empty)

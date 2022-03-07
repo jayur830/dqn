@@ -78,7 +78,13 @@ class GridWorldEnvironment(Environment):
         # self._state[row_indexes[0], col_indexes[0], 0] = 1.
         # self._state[row_indexes[1], col_indexes[1], 0] = 2.
         self._state[0, 0, 0] = 1.
+        self._state[2, 1, 0] = -1.
+        self._state[0, 3, 0] = -1.
         self._state[1, 4, 0] = -1.
+        self._state[3, 2, 0] = -1.
+        self._state[4, 0, 0] = -1.
         self._state[5, 3, 0] = -1.
+        self._state[6, 1, 0] = -1.
+        self._state[3, 6, 0] = -1.
         self._state[grid_world_height - 1, grid_world_width - 1, 0] = 2.
         return self._state

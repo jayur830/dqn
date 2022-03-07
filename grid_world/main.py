@@ -1,4 +1,5 @@
 import os
+import tensorflow as tf
 import numpy as np
 import cv2
 
@@ -12,14 +13,14 @@ n_wins = 100
 win_counts = deque(maxlen=n_wins)
 
 
-def on_episode_end(episode, reward, info):
+def on_episode_end(episode, reward, loss, info):
     win_counts.append(info["status"] == "WIN")
     color = ""
     if info["status"] == "LOSE":
         color = "\033[91m"
     elif info["status"] == "WIN":
         color = "\033[94m"
-    print(f"episode {episode}: {color}{info['status']}, reward: {reward}\033[0m,\t\trate of wins for recent {n_wins} episodes: {int(round(np.sum(win_counts) / len(win_counts) * 100))}%")
+    print(f"episode {episode}: {color}{info['status']}, reward: {reward}\033[0m,\t\trate of wins for recent {n_wins} episodes: {int(round(np.sum(win_counts) / len(win_counts) * 100))}%, loss: {tf.reduce_mean(loss):.4f}")
 
 
 def on_step_end(state, action, reward, next_state, done, info):
