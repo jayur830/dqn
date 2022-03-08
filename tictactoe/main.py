@@ -88,7 +88,7 @@ def on_step_end(state, action, reward, next_state, done, info):
 
 def action_mask(states, q_outputs):
     q_outputs = tf.reshape(q_outputs, [tf.shape(q_outputs)[0], -1])
-    q_outputs = tf.where(tf.reshape(states, [tf.shape(states)[0], -1]) != empty, tf.reduce_min(q_outputs), q_outputs)
+    q_outputs = tf.where(tf.reshape(states, [tf.shape(states)[0], -1]) != empty, tf.reduce_min(q_outputs) - 999, q_outputs)
     return q_outputs
 
 
@@ -107,9 +107,9 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=100,
+        batch_size=1000,
         action_mask=action_mask,
-        target_update_freq=100,
+        target_update_freq=256,
         on_episode_end=on_episode_end,
         # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",

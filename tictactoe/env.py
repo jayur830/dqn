@@ -12,11 +12,32 @@ class TicTacToeEnvironment(Environment):
         super().__init__(init_state)
         self.__iter = 0
         self.__enemy_agent = tf.keras.models.load_model("tictactoe.h5")
+        self.__turn = enemy
 
     def step(self, action: int):
         next_state = self._state.copy()
 
         self.__iter += 1
+
+        # try:
+        #     next_state = self.__step_agent(next_state, action)
+        # except:
+        #     reward = reward_reset
+        #     done = True
+        #     self.__iter = 0
+        #     return next_state, reward, done, {"status": "RESET"}
+        #
+        # done, winner, reward, info = self.__result(next_state)
+        # if done:
+        #     self.__iter = 0
+        #     return next_state, reward, done, info
+        #
+        # next_state = self.__step_random_enemy(next_state, action)
+        #
+        # done, winner, reward, info = self.__result(next_state)
+        # if done:
+        #     self.__iter = 0
+        #     return next_state, reward, done, info
 
         try:
             next_state = self.__step_agent(next_state, action)
@@ -24,34 +45,30 @@ class TicTacToeEnvironment(Environment):
             reward = reward_reset
             done = True
             self.__iter = 0
-            return next_state, reward, done, {"status": "RESET"}
+            return next_state, reward, done, { "status": "RESET" }
 
         done, winner, reward, info = self.__result(next_state)
         if done:
             self.__iter = 0
             return next_state, reward, done, info
 
-        next_state = self.__step_random_enemy(next_state, action)
-
-        done, winner, reward, info = self.__result(next_state)
-        if done:
-            self.__iter = 0
-            return next_state, reward, done, info
+        self.__turn = enemy if self.__turn == agent else agent
 
         return next_state, reward, done, info
 
     def reset(self):
         self._state = self._init_state.copy()
         index = np.random.randint(9)
-        self._state[indices[index][0], indices[index][1]] = enemy
+        self.__turn = [agent, enemy][np.random.randint(2)]
+        # self._state[indices[index][0], indices[index][1]] = self.__turn
         return self._state
 
     def __step_agent(self, next_state: np.ndarray, action: int):
         if np.any(next_state == empty):
-            if next_state[indices[action][0], indices[action][1]] != empty:
+            if next_state[indices[action, 0], indices[action, 1]] != empty:
                 raise ValueError()
             else:
-                next_state[indices[action][0], indices[action][1]] = agent
+                next_state[indices[action, 0], indices[action, 1]] = self.__turn
             self._state = next_state
         return next_state
 

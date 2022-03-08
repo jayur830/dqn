@@ -6,7 +6,7 @@ from typing import Callable, Any, Union
 from gym import Env
 from rl.env import Environment
 from rl.replay_buffer import ReplayBuffer
-from rl.utils import random_indexes, randint
+from rl.utils import randint
 
 
 def set_target_weights(i: int, weights: list, q_weights: list, target_weights: list, tau: float):
@@ -53,7 +53,7 @@ class DQN:
                     if action_mask is None:
                         action = randint(self.__q_model.output_shape[-1])
                     else:
-                        rand_indexes = random_indexes(self.__q_model.output_shape[-1])
+                        rand_indexes = np.random.choice(self.__q_model.output_shape[-1], size=self.__q_model.output_shape[-1], replace=False) + 0.5
                         masked_indexes = tf.reshape(action_mask(tf.reshape(state, tf.concat([[1], tf.shape(state)], axis=0)), tf.reshape(rand_indexes, tf.concat([[1], tf.shape(rand_indexes)], axis=0))), [-1])
                         action = tf.argmax(masked_indexes)
                 else:
@@ -63,7 +63,7 @@ class DQN:
                     action = tf.argmax(q_output, axis=1)[0]
                 next_state, reward, done, info = self.__env.step(int(action))
                 acc_rewards += reward
-                self.__replay_buffer.put(np.reshape(state, (1,) + state.shape), action, reward, np.reshape(next_state, (1,) + state.shape), done)
+                self.__replay_buffer.put(np.reshape(state, (1,) + state.shape), action, reward, np.reshape(next_state, (1,) + next_state.shape), done)
                 state = next_state
                 if on_step_end is not None:
                     on_step_end(state, action, reward, next_state, done, info)
@@ -74,9 +74,9 @@ class DQN:
                     with tf.GradientTape() as tape:
                         next_q_values = self.__target_model(next_states)
                         if action_mask is not None:
-                            next_q_values = action_mask(next_states, self.__target_model(next_states))
-                        # q_target = rewards + (1 - dones) * gamma * tf.reduce_max(next_q_values, axis=1, keepdims=True)
-                        q_target = rewards + (1 - dones) * gamma * tf.math.log(tf.reduce_sum(tf.exp(next_q_values), axis=1))
+                            next_q_values = action_mask(next_states, next_q_values)
+                        q_target = rewards + (1 - dones) * gamma * tf.reduce_max(next_q_values, axis=1, keepdims=True)
+                        # q_target = rewards + (1 - dones) * gamma * tf.math.log(tf.reduce_sum(tf.exp(next_q_values), axis=1))
                         q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
                         loss = self.__q_model.loss(q_values, q_target)
                         self.__q_model.optimizer.apply_gradients(zip(tape.gradient(loss, self.__q_model.trainable_weights), self.__q_model.trainable_weights))
