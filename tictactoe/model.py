@@ -21,7 +21,7 @@ def agent_model(
     model = tf.keras.models.Model(input_layer, x)
     model.compile(
         optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
-        loss=tf.losses.huber)
+        loss=tf.losses.mean_squared_error)
     model.summary()
 
     return model

@@ -7,6 +7,7 @@ import random
 from collections import deque
 from rl.dqn import DQN
 from tictactoe.env import TicTacToeEnvironment
+# from tictactoe.env_example import TicTacToeEnv
 from tictactoe.model import agent_model
 from tictactoe.commons import reward_reset, reward_draw, reward_lose, reward_win, agent, enemy, empty
 
@@ -94,10 +95,11 @@ def action_mask(states, q_outputs):
 if __name__ == "__main__":
     os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
-    episodes = 10000
-    replay_buffer_size = 10000
+    episodes = 100000
+    replay_buffer_size = 50000
 
     env = TicTacToeEnvironment(init_state=np.ones(shape=(3, 3, 1)) * empty)
+    # env = TicTacToeEnv()
 
     dqn = DQN(
         env=env,
@@ -105,11 +107,11 @@ if __name__ == "__main__":
         replay_buffer_size=replay_buffer_size)
     dqn.fit(
         episodes=episodes,
-        batch_size=64,
+        batch_size=100,
         action_mask=action_mask,
-        target_update_freq=128,
+        target_update_freq=100,
         on_episode_end=on_episode_end,
-        on_step_end=on_step_end,
+        # on_step_end=on_step_end,
         # checkpoint_path="checkpoint/tictactoe_agent_{episode}_{reward:.1f}.h5",
         # checkpoint_freq=100
     )

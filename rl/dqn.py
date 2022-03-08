@@ -1,14 +1,22 @@
 import tensorflow as tf
 import numpy as np
 
-from typing import Callable, Any
+from collections import deque
+from typing import Callable, Any, Union
+from gym import Env
 from rl.env import Environment
 from rl.replay_buffer import ReplayBuffer
 from rl.utils import random_indexes, randint
 
 
+def set_target_weights(i: int, weights: list, q_weights: list, target_weights: list, tau: float):
+    weights.append(q_weights[i] * tau + target_weights[i] * (1 - tau))
+    i += 1
+    return i
+
+
 class DQN:
-    def __init__(self, env: Environment, model: tf.keras.models.Model, replay_buffer_size: int = 1000, epsilon: float = 1.):
+    def __init__(self, env: Union[Environment, Env], model: tf.keras.models.Model, replay_buffer_size: int = 1000, epsilon: float = 1.):
         self.__env = env
         self.__target_model = model
         self.__q_model = tf.keras.models.clone_model(model)
@@ -59,25 +67,28 @@ class DQN:
                 state = next_state
                 if on_step_end is not None:
                     on_step_end(state, action, reward, next_state, done, info)
-                if step % target_update_freq == 0:
-                    weights = []
-                    q_weights = self.__q_model.get_weights()
-                    target_weights = self.__target_model.get_weights()
-                    for i in range(len(q_weights)):
-                        weights.append(q_weights[i] * tau + target_weights[i] * (1 - tau))
-                    self.__target_model.set_weights(weights)
+                if done:
+                    break
                 if len(self.__replay_buffer) >= batch_size:
                     states, actions, rewards, next_states, dones = self.__replay_buffer.sample(batch_size)
                     with tf.GradientTape() as tape:
                         next_q_values = self.__target_model(next_states)
                         if action_mask is not None:
                             next_q_values = action_mask(next_states, self.__target_model(next_states))
-                        q_target = rewards + (1 - dones) * gamma * tf.reduce_max(next_q_values, axis=1, keepdims=True)
+                        # q_target = rewards + (1 - dones) * gamma * tf.reduce_max(next_q_values, axis=1, keepdims=True)
+                        q_target = rewards + (1 - dones) * gamma * tf.math.log(tf.reduce_sum(tf.exp(next_q_values), axis=1))
                         q_values = tf.reduce_sum(self.__q_model(states) * tf.one_hot(tf.cast(tf.reshape(actions, [-1]), tf.int32), self.__q_model.output_shape[-1]), axis=1, keepdims=True)
                         loss = self.__q_model.loss(q_values, q_target)
                         self.__q_model.optimizer.apply_gradients(zip(tape.gradient(loss, self.__q_model.trainable_weights), self.__q_model.trainable_weights))
-                if done:
-                    break
+                if episode % target_update_freq == 0:
+                    weights = []
+                    q_weights = self.__q_model.get_weights()
+                    target_weights = self.__target_model.get_weights()
+                    tf.while_loop(
+                        lambda i: tf.less(i, len(q_weights)),
+                        lambda i: (set_target_weights(i, weights, q_weights, target_weights, tau),),
+                        [tf.constant(0)])
+                    self.__target_model.set_weights(weights)
             if on_episode_end is not None and callable(on_episode_end):
                 on_episode_end(episode + 1, reward, loss, info)
             if checkpoint_path is not None and (episode + 1) % checkpoint_freq == 0:
